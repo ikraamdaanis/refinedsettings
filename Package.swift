@@ -2,9 +2,9 @@
 import PackageDescription
 
 let package = Package(
-    name: "Linkguide",
+    name: "RefinedSettings",
     platforms: [.macOS(.v13)],
     targets: [
-        .executableTarget(name: "Linkguide", path: "Sources/Linkguide"),
+        .executableTarget(name: "RefinedSettings", path: "Sources/RefinedSettings"),
     ]
 )

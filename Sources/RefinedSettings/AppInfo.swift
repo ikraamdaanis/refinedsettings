@@ -1,15 +1,15 @@
 import AppKit
 import OSLog
 
-let log = Logger(subsystem: "com.ikraam.linkguide", category: "Linkguide")
+let log = Logger(subsystem: "com.ikraam.refinedsettings", category: "RefinedSettings")
 
-/// What Linkguide needs to know about installed apps, and about which one is the default browser.
+/// What Refined Settings needs to know about installed apps, and about which one is the default browser.
 @MainActor
 enum AppInfo {
     /// Any web address: asking macOS which apps open it lists the browsers.
     private static let sampleWebURL = URL(string: "https://example.com")
 
-    static func isLinkguide(_ appURL: URL) -> Bool {
+    static func isRefinedSettings(_ appURL: URL) -> Bool {
         Bundle(url: appURL)?.bundleIdentifier == Bundle.main.bundleIdentifier
     }
 
@@ -33,20 +33,20 @@ enum AppInfo {
     }
 
     /// macOS asks the user to confirm the change in its own dialog; declining it is logged, not shown.
-    static func makeLinkguideDefaultBrowser() async {
+    static func makeRefinedSettingsDefaultBrowser() async {
         do {
             for scheme in ["http", "https"] {
                 try await NSWorkspace.shared.setDefaultApplication(at: Bundle.main.bundleURL, toOpenURLsWithScheme: scheme)
             }
         } catch {
-            log.error("Couldn't make Linkguide the default browser: \(error.localizedDescription, privacy: .public)")
+            log.error("Couldn't make Refined Settings the default browser: \(error.localizedDescription, privacy: .public)")
         }
     }
 }
 
 extension NSApplication {
-    /// Brings Linkguide to the front. It is a menu bar app, so it has to ask explicitly.
-    func activateLinkguide() {
+    /// Brings Refined Settings to the front. It is a menu bar app, so it has to ask explicitly.
+    func activateRefinedSettings() {
         if #available(macOS 14, *) {
             activate()
         } else {

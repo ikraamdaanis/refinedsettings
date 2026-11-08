@@ -1,57 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Settings is the one place Linkguide behaves like a normal app: while it is open, Linkguide sits in the Dock
-/// (so it can be assigned to a desktop from the Dock menu) and has a menu bar; closing it puts Linkguide back
-/// in the menu bar only.
-@MainActor
-final class SettingsWindowController: NSObject, NSWindowDelegate {
-    private var window: NSWindow?
-
-    var isVisible: Bool { window?.isVisible ?? false }
-
-    func show() {
-        let settingsWindow = window ?? makeWindow()
-
-        // A Settings window left open on another desktop would pull you over to it. Take it off that desktop,
-        // so macOS shows it on the current one (or on the desktop Linkguide is assigned to in the Dock).
-        if settingsWindow.isVisible && !settingsWindow.isOnActiveSpace {
-            settingsWindow.orderOut(nil)
-        }
-
-        if !settingsWindow.isVisible {
-            settingsWindow.setContentSize(settingsWindow.contentView?.fittingSize ?? settingsWindow.frame.size)
-            settingsWindow.center()
-        }
-
-        NSApp.setActivationPolicy(.regular)
-        NSApp.activateLinkguide()
-        settingsWindow.makeKeyAndOrderFront(nil)
-    }
-
-    func windowWillClose(_ notification: Notification) {
-        NSApp.setActivationPolicy(.accessory)
-
-        // Hand focus back to whatever was in front before Settings opened.
-        DispatchQueue.main.async {
-            NSApp.hide(nil)
-        }
-    }
-
-    private func makeWindow() -> NSWindow {
-        let newWindow = NSWindow(contentViewController: NSHostingController(rootView: SettingsView()))
-        newWindow.title = "Linkguide Settings"
-        newWindow.styleMask = [.titled, .closable, .miniaturizable]
-        newWindow.titlebarSeparatorStyle = .none
-        newWindow.isReleasedWhenClosed = false
-        newWindow.delegate = self
-        window = newWindow
-
-        return newWindow
-    }
-}
-
-private struct SettingsView: View {
+struct LinksPane: View {
     @State private var entries = BrowserCatalog.allEntries()
     @State private var hiddenIDs = BrowserCatalog.hiddenIDs
     @State private var defaultBrowserURL = AppInfo.defaultBrowserURL()
@@ -60,10 +10,6 @@ private struct SettingsView: View {
     @State private var dragTranslation: CGFloat = 0
 
     private let rowHeight: CGFloat = 40
-    /// Everything in the form besides the browser rows: section headers, the footer and the Default Browser section.
-    private let heightAroundRows: CGFloat = 222
-    /// The Safari Profiles section, shown until Linkguide has Accessibility access.
-    private let safariAccessSectionHeight: CGFloat = 92
 
     /// The keyboard shortcut each visible row gets in the picker, following the row being dragged.
     private var shortcuts: [String: String] {
@@ -97,17 +43,21 @@ private struct SettingsView: View {
         return reordered
     }
 
-    // Laid out like System Settings > Language & Region > Preferred Languages: a grouped section whose rows
-    // you drag into order, with a checkbox per row (as the old Spotlight search results list had) to hide one.
+    // Laid out like System Settings > Privacy & Security > Accessibility: a grouped list of apps with a switch
+    // each, which you can also drag into order, as in Language & Region > Preferred Languages.
     var body: some View {
         Form {
+            Section {
+                PaneHeader(pane: .links)
+            }
             Section {
                 VStack(spacing: 0) {
                     ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
                         reorderableRow(for: entry, at: index)
                     }
                 }
-                .listRowInsets(EdgeInsets())
+                // Cancels the form row's own vertical padding, so these rows are spaced like every other 40-point row.
+                .padding(.vertical, -10)
             } header: {
                 Text("Browsers")
             } footer: {
@@ -123,25 +73,25 @@ private struct SettingsView: View {
                             SafariProfiles.requestAccess()
                         }
                     } label: {
-                        Text("Linkguide needs Accessibility access to open links in a Safari profile.")
+                        Text("Refined Settings needs Accessibility access to open links in a Safari profile.")
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }
             Section("Default Browser") {
                 LabeledContent {
-                    if let defaultBrowserURL, AppInfo.isLinkguide(defaultBrowserURL) {
+                    if let defaultBrowserURL, AppInfo.isRefinedSettings(defaultBrowserURL) {
                         Text("Links open in the picker")
                     } else {
-                        Button("Use Linkguide") {
+                        Button("Use Refined Settings") {
                             Task {
-                                await AppInfo.makeLinkguideDefaultBrowser()
+                                await AppInfo.makeRefinedSettingsDefaultBrowser()
                                 refresh()
                             }
                         }
                     }
                 } label: {
-                    HStack(spacing: 8) {
+                    HStack(spacing: 10) {
                         if let defaultBrowserURL {
                             Image(nsImage: NSWorkspace.shared.icon(forFile: defaultBrowserURL.path))
                                 .resizable()
@@ -156,8 +106,6 @@ private struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .scrollDisabled(true)
-        .frame(width: 480, height: CGFloat(entries.count) * rowHeight + heightAroundRows + (needsSafariAccess ? safariAccessSectionHeight : 0))
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refresh()
         }
@@ -172,12 +120,10 @@ private struct SettingsView: View {
             : CGFloat(slot - index) * rowHeight
 
         return browserRow(for: entry)
-            .padding(.horizontal, 10)
             .overlay(alignment: .bottom) {
                 if !isDragged && slot < entries.count - 1 {
                     Divider()
-                        .padding(.leading, 64)
-                        .padding(.trailing, 10)
+                        .padding(.leading, 30)
                 }
             }
             .background {
@@ -185,7 +131,7 @@ private struct SettingsView: View {
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
                         .fill(Color(nsColor: .controlBackgroundColor))
                         .shadow(color: .black.opacity(0.18), radius: 10, y: 4)
-                        .padding(.horizontal, 4)
+                        .padding(.horizontal, -6)
                 }
             }
             .offset(y: offset)
@@ -233,11 +179,8 @@ private struct SettingsView: View {
     private func browserRow(for entry: BrowserEntry) -> some View {
         let isShown = !hiddenIDs.contains(entry.id)
 
-        return HStack(spacing: 8) {
-            Toggle("Show \([entry.browserName, entry.profileName].compactMap { name in name }.joined(separator: " "))", isOn: visibilityBinding(for: entry.id))
-                .labelsHidden()
-                .toggleStyle(.checkbox)
-            EntryIcon(entry: entry, size: 24)
+        return HStack(spacing: 10) {
+            EntryIcon(entry: entry, size: 20)
                 .opacity(isShown ? 1 : 0.45)
             HStack(spacing: 5) {
                 Text(entry.browserName)
@@ -255,6 +198,10 @@ private struct SettingsView: View {
                     .foregroundStyle(.secondary)
                     .help("Press \(shortcut) in the picker")
             }
+            Toggle("Show \([entry.browserName, entry.profileName].compactMap { name in name }.joined(separator: " "))", isOn: visibilityBinding(for: entry.id))
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .controlSize(.mini)
         }
         .frame(height: rowHeight)
         .contentShape(Rectangle())

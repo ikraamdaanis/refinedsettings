@@ -1,11 +1,11 @@
 import AppKit
 
 /// Hands a link to the browser (and profile) picked for it. Every path names the target app,
-/// so a link is never passed back to the default browser, which is Linkguide.
+/// so a link is never passed back to the default browser, which is Refined Settings.
 @MainActor
 enum BrowserLauncher {
     static func open(_ url: URL, with entry: BrowserEntry) {
-        guard !AppInfo.isLinkguide(entry.appURL) else { return }
+        guard !AppInfo.isRefinedSettings(entry.appURL) else { return }
 
         switch entry.launchMethod {
         case .workspace:
@@ -62,10 +62,10 @@ enum BrowserLauncher {
     private static func showFailure(_ message: String) {
         log.error("\(message, privacy: .public)")
         let alert = NSAlert()
-        alert.messageText = "Linkguide"
+        alert.messageText = "Refined Settings"
         alert.informativeText = message
         alert.alertStyle = .warning
-        NSApp.activateLinkguide()
+        NSApp.activateRefinedSettings()
         alert.runModal()
     }
 }

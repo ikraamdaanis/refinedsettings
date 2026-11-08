@@ -2,7 +2,7 @@ import AppKit
 import Carbon.HIToolbox
 import SwiftUI
 
-/// A standard titled window that can take keyboard focus without activating Linkguide,
+/// A standard titled window that can take keyboard focus without activating Refined Settings,
 /// so the app you clicked the link in keeps its place.
 final class PickerWindow: NSPanel {
     /// Returns true when the key press was handled and should not reach the SwiftUI content.
@@ -98,8 +98,8 @@ final class PickerController {
         window.orderOut(nil)
         currentURL = nil
 
-        // Opening a link activates Linkguide. With a browser picked, the browser takes focus as it opens. On a
-        // cancel, focus goes to the front window on this desktop. Hiding Linkguide instead would hand focus to
+        // Opening a link activates Refined Settings. With a browser picked, the browser takes focus as it opens. On a
+        // cancel, focus goes to the front window on this desktop. Hiding Refined Settings instead would hand focus to
         // the app the link came from, and macOS switches to that app's desktop when its windows are elsewhere.
         if let entry {
             BrowserLauncher.open(url, with: entry)
@@ -206,7 +206,7 @@ final class PickerController {
         windowObservers = []
     }
 
-    /// The app that owns the frontmost ordinary window on the current desktop, skipping Linkguide. Nil on an
+    /// The app that owns the frontmost ordinary window on the current desktop, skipping Refined Settings. Nil on an
     /// empty desktop, in which case focus stays where it is.
     private static func frontAppOnCurrentDesktop() -> NSRunningApplication? {
         let options: CGWindowListOption = [.optionOnScreenOnly, .excludeDesktopElements]

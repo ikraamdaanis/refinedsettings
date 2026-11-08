@@ -2,7 +2,7 @@ import AppKit
 import ApplicationServices
 
 /// Safari has no command-line flag, AppleScript command or Shortcuts action for opening a link in a given
-/// profile, so Linkguide works through Safari's own interface with the Accessibility API. It reads the profiles
+/// profile, so Refined Settings works through Safari's own interface with the Accessibility API. It reads the profiles
 /// from the File menu's "New <Profile> Window" items. To open a link, it brings a window of that profile to the
 /// front (opening one from that menu if there is none), then hands Safari the link, which Safari opens in the
 /// profile in front.
@@ -15,7 +15,7 @@ enum SafariProfiles {
     private static let menuItemMarker = "Window?isDefaultProfile="
     /// With more than one profile, Safari starts each window title with the profile name and an em dash.
     private static let titleSeparator = " \u{2014} "
-    /// How long to wait on Safari for each Accessibility call, so a hung Safari can't stall Linkguide.
+    /// How long to wait on Safari for each Accessibility call, so a hung Safari can't stall Refined Settings.
     private static let messagingTimeout: Float = 1
 
     private struct MenuProfile {
@@ -26,7 +26,7 @@ enum SafariProfiles {
 
     static var hasAccess: Bool { AXIsProcessTrusted() }
 
-    /// Shows macOS's Accessibility prompt, which also adds Linkguide to the list in System Settings.
+    /// Shows macOS's Accessibility prompt, which also adds Refined Settings to the list in System Settings.
     static func requestAccess() {
         AXIsProcessTrustedWithOptions(["AXTrustedCheckOptionPrompt": true] as CFDictionary)
     }

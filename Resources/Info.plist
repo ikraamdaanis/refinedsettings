@@ -5,15 +5,15 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
-	<string>Linkguide</string>
+	<string>RefinedSettings</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.ikraam.linkguide</string>
+	<string>com.ikraam.refinedsettings</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Linkguide</string>
+	<string>Refined Settings</string>
 	<key>CFBundleDisplayName</key>
-	<string>Linkguide</string>
+	<string>Refined Settings</string>
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 	<key>CFBundlePackageType</key>

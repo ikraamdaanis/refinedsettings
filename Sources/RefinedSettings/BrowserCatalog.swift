@@ -142,7 +142,7 @@ enum BrowserCatalog {
         }
     }
 
-    /// Apps that open both https URLs and HTML files, minus menu bar utilities (Linkguide itself,
+    /// Apps that open both https URLs and HTML files, minus menu bar utilities (Refined Settings itself,
     /// URL routers such as Hammerspoon) and copies tucked away in caches.
     private static func installedBrowsers() -> [BrowserApp] {
         let htmlHandlers = Set(NSWorkspace.shared.urlsForApplications(toOpen: UTType.html).map { appURL in appURL.standardizedFileURL })
@@ -160,7 +160,7 @@ enum BrowserCatalog {
             guard
                 htmlHandlers.contains(appURL.standardizedFileURL),
                 !appURL.path.hasPrefix(libraryPath),
-                !AppInfo.isLinkguide(appURL),
+                !AppInfo.isRefinedSettings(appURL),
                 let bundle = Bundle(url: appURL),
                 let bundleID = bundle.bundleIdentifier,
                 bundle.object(forInfoDictionaryKey: "LSUIElement") as? Bool != true,

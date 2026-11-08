@@ -3,6 +3,7 @@ import AppKit
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
+    private var isMenuBarIconShown = MenuBarIconSetting.isShown
     private var hasFinishedLaunching = false
     private var urlsReceivedDuringLaunch: [URL] = []
     private let settingsWindow = SettingsWindowController()
@@ -13,9 +14,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         installMainMenu()
         installStatusItem()
+        NotificationCenter.default.addObserver(self, selector: #selector(syncMenuBarIcon), name: UserDefaults.didChangeNotification, object: nil)
         hasFinishedLaunching = true
+
+        // With no menu bar icon, opening the app is the only way to reach Settings.
+        if !MenuBarIconSetting.isShown && urlsReceivedDuringLaunch.isEmpty && !wasLaunchedAtLogin {
+            settingsWindow.show()
+        }
+
         picker.enqueue(urlsReceivedDuringLaunch)
         urlsReceivedDuringLaunch = []
+    }
+
+    private var wasLaunchedAtLogin: Bool {
+        guard let launchEvent = NSAppleEventManager.shared().currentAppleEvent else { return false }
+
+        return launchEvent.eventID == kAEOpenApplication
+            && launchEvent.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue == keyAELaunchedAsLogInItem
+    }
+
+    @objc private func syncMenuBarIcon() {
+        let isShown = MenuBarIconSetting.isShown
+
+        guard isShown != isMenuBarIconShown else { return }
+
+        // Recorded first: setting isVisible writes to UserDefaults itself, which lands back here.
+        isMenuBarIconShown = isShown
+        statusItem?.isVisible = isShown
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
@@ -39,38 +64,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func installStatusItem() {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        // 15 pt draws the gear at 18 px tall, 2 px up on the default 13 pt.
-        let image = NSImage(systemSymbolName: "gearshape", accessibilityDescription: "Linkguide")?
-            .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 15, weight: .regular))
-        image?.isTemplate = true
-        item.button?.image = image
+        item.button?.image = GearGlyph.image(pointSize: 17, accessibilityDescription: "Refined Settings")
         let menu = NSMenu()
-        let settingsItem = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
-        settingsItem.target = self
-        menu.addItem(settingsItem)
+        menu.addItem(makeSettingsItem())
         menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: "Quit Linkguide", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: "Quit Refined Settings", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         item.menu = menu
+        item.isVisible = MenuBarIconSetting.isShown
         statusItem = item
     }
 
-    /// The menu bar shown while Linkguide is a regular Dock app (whenever Settings is open).
+    /// The menu bar shown while Refined Settings is a regular Dock app (whenever Settings is open).
     private func installMainMenu() {
         let mainMenu = NSMenu()
         let appMenu = NSMenu()
-        appMenu.addItem(NSMenuItem(title: "About Linkguide", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: ""))
+        appMenu.addItem(NSMenuItem(title: "About Refined Settings", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: ""))
         appMenu.addItem(.separator())
-        let settingsItem = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
-        settingsItem.target = self
-        appMenu.addItem(settingsItem)
+        appMenu.addItem(makeSettingsItem())
         appMenu.addItem(.separator())
-        appMenu.addItem(NSMenuItem(title: "Hide Linkguide", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h"))
+        appMenu.addItem(NSMenuItem(title: "Hide Refined Settings", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h"))
         let hideOthersItem = NSMenuItem(title: "Hide Others", action: #selector(NSApplication.hideOtherApplications(_:)), keyEquivalent: "h")
         hideOthersItem.keyEquivalentModifierMask = [.command, .option]
         appMenu.addItem(hideOthersItem)
         appMenu.addItem(NSMenuItem(title: "Show All", action: #selector(NSApplication.unhideAllApplications(_:)), keyEquivalent: ""))
         appMenu.addItem(.separator())
-        appMenu.addItem(NSMenuItem(title: "Quit Linkguide", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        appMenu.addItem(NSMenuItem(title: "Quit Refined Settings", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         let appMenuItem = NSMenuItem()
         appMenuItem.submenu = appMenu
         mainMenu.addItem(appMenuItem)
@@ -82,6 +100,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         mainMenu.addItem(windowMenuItem)
         NSApp.mainMenu = mainMenu
         NSApp.windowsMenu = windowMenu
+    }
+
+    /// From macOS 26, menus show an icon next to standard items; Settings… gets the app's own gear rather than
+    /// the system's. Earlier versions show no menu icons, so neither does this item there.
+    private func makeSettingsItem() -> NSMenuItem {
+        let settingsItem = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
+        settingsItem.target = self
+
+        if #available(macOS 26, *) {
+            settingsItem.image = GearGlyph.image(pointSize: 15, accessibilityDescription: nil)
+        }
+
+        return settingsItem
     }
 
     @objc private func openSettings() {
