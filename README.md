@@ -2,7 +2,7 @@
 
 Refined Settings for Mac: small system tweaks in one menu bar app, for macOS 13+.
 
-Today it handles links, your mouse's scrolling direction and cycling through a desktop's windows. Set it as the default browser and every link opens an "Open Link" window in the centre of the screen, listing each installed browser, and each profile for Chrome-family browsers, Firefox (only Firefox profiles that have been used) and Safari (once there's more than one). Hidden Settings and more of Mouse & Scrolling are planned; the research behind them is in [docs](docs/README.md).
+Today it handles links, your mouse's scrolling direction, cycling through a desktop's windows and options macOS has but doesn't show, placed where System Settings would put them. Set it as the default browser and every link opens an "Open Link" window in the centre of the screen, listing each installed browser, and each profile for Chrome-family browsers, Firefox (only Firefox profiles that have been used) and Safari (once there's more than one). More of these options and more mouse settings are planned; the research behind them is in [docs](docs/README.md).
 
 Press `1` to `9` to open straight away, or pick with the arrow keys and press Return, double-click a row, or click Open. Press `Esc`, click Cancel or the close button, or click outside the window to cancel.
 
@@ -43,11 +43,15 @@ This needs Accessibility access: click **Allow Access…** in Refined Settings' 
 
 ## Mouse scrolling
 
-**Mouse & Scrolling** in Settings shows your connected mouse and can reverse its vertical and horizontal scrolling separately, without changing your trackpad. It needs Accessibility access, and the event tap only runs while a switch is on. Don't reverse the same mouse in another app as well, or the two cancel out. The approach comes from [LinearMouse](https://github.com/linearmouse/linearmouse).
+**Mouse** in Settings shows your connected mouse and can reverse its vertical and horizontal scrolling separately, without changing your trackpad. It needs Accessibility access, and the event tap only runs while a switch is on. Don't reverse the same mouse in another app as well, or the two cancel out. The approach comes from [LinearMouse](https://github.com/linearmouse/linearmouse).
 
 ## Desktops
 
-If you use the **Switch to Desktop N** shortcuts (**System Settings > Keyboard > Keyboard Shortcuts > Mission Control**), **Cycle through windows** under **Desktops** in Settings makes the shortcut for the desktop you're already on rotate through that desktop's windows, starting from the one at the back. Shortcuts for other desktops still switch desktops. It needs Accessibility access, and its keyboard event tap only runs while the switch is on. The tap reads only each key press's key code and modifiers, and passes on everything except that one shortcut.
+If you use the **Switch to Desktop N** shortcuts (**System Settings > Keyboard > Keyboard Shortcuts > Mission Control**), **Cycle through windows** under **Desktop & Dock** in Settings makes the shortcut for the desktop you're already on rotate through that desktop's windows, starting from the one at the back. Shortcuts for other desktops still switch desktops. It needs Accessibility access, and its keyboard event tap only runs while the switch is on. The tap reads only each key press's key code and modifiers, and passes on everything except that one shortcut.
+
+## Options macOS doesn't show
+
+Settings is organised like System Settings, so these sit with the things they relate to. **Desktop & Dock** sets how quickly an auto-hiding Dock appears, **Screenshots** sets the file format, window shadow and file name, and **Keyboard** sets whether holding a key repeats it. Each row's reset button deletes the preference, so the macOS default comes back. Dock changes wait for the **Restart Dock** button, and open apps need reopening to pick up the keyboard setting. No permissions are needed.
 
 ## Known limitation
 

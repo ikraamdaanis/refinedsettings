@@ -1,7 +1,7 @@
 import ApplicationServices
 import SwiftUI
 
-struct DesktopsPane: View {
+struct DesktopAndDockPane: View {
     @AppStorage(DesktopCyclingSetting.key) private var isCycling = false
     @State private var shortcuts = DesktopShortcut.loadAll()
     @State private var hasAccessibilityAccess = AXIsProcessTrusted()
@@ -29,9 +29,10 @@ struct DesktopsPane: View {
     var body: some View {
         Form {
             Section {
-                PaneSummary(pane: .desktops)
+                PaneSummary(pane: .desktopAndDock)
             }
-            Section {
+            DockSection()
+            Section("Mission Control") {
                 Toggle(isOn: isCyclingBinding) {
                     Text("Cycle through windows")
                     Text(cyclingExplanation)
@@ -62,6 +63,7 @@ struct DesktopsPane: View {
             }
         }
         .paneFormStyle()
+        .refreshesSystemPreferences()
         .task {
             // Only while this pane is showing, so a changed shortcut or a grant being made shows up here.
             while !Task.isCancelled {

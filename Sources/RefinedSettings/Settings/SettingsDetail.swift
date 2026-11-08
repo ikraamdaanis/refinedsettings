@@ -8,14 +8,16 @@ struct SettingsDetail: View {
         switch pane {
         case .general:
             GeneralPane()
+        case .desktopAndDock:
+            DesktopAndDockPane()
         case .links:
             LinksPane()
-        case .mouseAndScrolling:
-            MouseScrollingPane()
-        case .desktops:
-            DesktopsPane()
-        case .hiddenSettings:
-            UnbuiltPane(pane: pane)
+        case .screenshots:
+            ScreenshotsPane()
+        case .keyboard:
+            KeyboardPane()
+        case .mouse:
+            MousePane()
         }
     }
 }

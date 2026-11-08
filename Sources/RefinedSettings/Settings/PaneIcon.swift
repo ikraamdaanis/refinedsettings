@@ -13,7 +13,7 @@ struct PaneIcon: View {
         glyph
             .foregroundStyle(.white)
             .frame(width: size, height: size)
-            .background(pane.tint.gradient, in: shape)
+            .background(pane.iconGradient, in: shape)
             .overlay(shape.strokeBorder(.white.opacity(0.18), lineWidth: 0.5))
             .shadow(color: .black.opacity(0.18), radius: size / 40, y: size / 40)
             .accessibilityHidden(true)

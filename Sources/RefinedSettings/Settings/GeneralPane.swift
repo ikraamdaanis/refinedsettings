@@ -7,6 +7,7 @@ struct GeneralPane: View {
     @State private var loginItemStatus = SMAppService.mainApp.status
     @State private var hasAccessibilityAccess = AXIsProcessTrusted()
     @State private var defaultBrowserURL = AppInfo.defaultBrowserURL()
+    @ObservedObject private var systemPreferences = SystemPreferenceStore.shared
 
     /// Registering from anywhere else (a build folder, say) would add a second entry to Login Items.
     private var isInstalled: Bool {
@@ -26,10 +27,11 @@ struct GeneralPane: View {
                 PaneHeader(pane: .general)
             }
             Section("Features") {
+                FeatureRow(pane: .desktopAndDock, status: DesktopCyclingSetting.isOn || systemPreferences.changedCount(in: SystemPreference.dockPreferences) > 0 ? "On" : "Off")
                 FeatureRow(pane: .links, status: AppInfo.isDefaultBrowser(defaultBrowserURL) ? "On" : "Needs Setup")
-                FeatureRow(pane: .mouseAndScrolling, status: MouseScrollSetting.reversesAnyAxis ? "On" : "Off")
-                FeatureRow(pane: .desktops, status: DesktopCyclingSetting.isOn ? "On" : "Off")
-                FeatureRow(pane: .hiddenSettings, status: "Coming Soon")
+                FeatureRow(pane: .screenshots, status: changeSummary(of: SystemPreference.screenshotPreferences))
+                FeatureRow(pane: .keyboard, status: changeSummary(of: SystemPreference.keyboardPreferences))
+                FeatureRow(pane: .mouse, status: MouseScrollSetting.reversesAnyAxis ? "On" : "Off")
             }
             Section("App") {
                 Toggle(isOn: launchesAtLogin) {
@@ -74,6 +76,12 @@ struct GeneralPane: View {
         }
     }
 
+    private func changeSummary(of preferences: [SystemPreference]) -> String {
+        let changedCount = systemPreferences.changedCount(in: preferences)
+
+        return changedCount == 0 ? "Default" : "\(changedCount) Changed"
+    }
+
     private func setLaunchesAtLogin(_ isOn: Bool) {
         do {
             if isOn {
@@ -92,5 +100,6 @@ struct GeneralPane: View {
         loginItemStatus = SMAppService.mainApp.status
         hasAccessibilityAccess = AXIsProcessTrusted()
         defaultBrowserURL = AppInfo.defaultBrowserURL()
+        systemPreferences.refresh()
     }
 }

@@ -1,7 +1,7 @@
 import ApplicationServices
 import SwiftUI
 
-struct MouseScrollingPane: View {
+struct MousePane: View {
     @AppStorage(MouseScrollSetting.verticalKey) private var reversesVertically = false
     @AppStorage(MouseScrollSetting.horizontalKey) private var reversesHorizontally = false
     @State private var mouseNames = MouseDevices.connectedNames()
@@ -14,7 +14,7 @@ struct MouseScrollingPane: View {
     var body: some View {
         Form {
             Section {
-                PaneSummary(pane: .mouseAndScrolling)
+                PaneSummary(pane: .mouse)
             }
             Section {
                 LabeledContent {
