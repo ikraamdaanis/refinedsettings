@@ -48,8 +48,9 @@ struct LinksPane: View {
     var body: some View {
         Form {
             Section {
-                PaneHeader(pane: .links)
+                PaneSummary(pane: .links)
             }
+            DefaultBrowserSection(defaultBrowserURL: defaultBrowserURL, refresh: refresh)
             Section {
                 VStack(spacing: 0) {
                     ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
@@ -59,53 +60,15 @@ struct LinksPane: View {
                 // Cancels the form row's own vertical padding, so these rows are spaced like every other 40-point row.
                 .padding(.vertical, -10)
             } header: {
-                Text("Browsers")
-            } footer: {
-                Text("Drag browsers to set their order in the picker. The first nine shown open with keys 1 to 9.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                PaneSectionHeader(title: "Browsers", help: "These are your choices when you click a link, in this order. Drag to reorder, or turn one off to hide it. The numbers are the keys that open each one.")
             }
             if needsSafariAccess {
                 Section("Safari Profiles") {
-                    LabeledContent {
-                        Button("Allow Access…") {
-                            SafariProfiles.requestAccess()
-                        }
-                    } label: {
-                        Text("Refined Settings needs Accessibility access to open links in a Safari profile.")
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-            }
-            Section("Default Browser") {
-                LabeledContent {
-                    if let defaultBrowserURL, AppInfo.isRefinedSettings(defaultBrowserURL) {
-                        Text("Links open in the picker")
-                    } else {
-                        Button("Use Refined Settings") {
-                            Task {
-                                await AppInfo.makeRefinedSettingsDefaultBrowser()
-                                refresh()
-                            }
-                        }
-                    }
-                } label: {
-                    HStack(spacing: 10) {
-                        if let defaultBrowserURL {
-                            Image(nsImage: NSWorkspace.shared.icon(forFile: defaultBrowserURL.path))
-                                .resizable()
-                                .frame(width: 20, height: 20)
-                                .accessibilityHidden(true)
-                            Text(AppInfo.name(of: defaultBrowserURL))
-                        } else {
-                            Text("None")
-                        }
-                    }
+                    AccessibilityAccessRow(reason: "To open a link in a particular Safari profile, Refined Settings has to use Safari's menus.")
                 }
             }
         }
-        .formStyle(.grouped)
+        .paneFormStyle()
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refresh()
         }

@@ -1,19 +1,20 @@
 import SwiftUI
 
-/// Mouse & Scrolling and Hidden Settings have their place in the sidebar, but no settings yet.
+/// Hidden Settings has its place in the sidebar, but no settings yet.
 struct UnbuiltPane: View {
     let pane: SettingsPane
 
     var body: some View {
         Form {
             Section {
-                PaneHeader(pane: pane)
+                PaneSummary(pane: pane)
             }
             Section {
-                Text("These settings aren't available yet.")
+                Text("Nothing to change here yet. These options are coming in a future update, each with a reset button to put things back.")
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .formStyle(.grouped)
+        .paneFormStyle()
     }
 }

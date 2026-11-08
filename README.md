@@ -2,7 +2,7 @@
 
 Refined Settings for Mac: small system tweaks in one menu bar app, for macOS 13+.
 
-Today it does one thing, links. Set it as the default browser and every link opens an "Open Link" window in the centre of the screen, listing each installed browser, and each profile for Chrome-family browsers, Firefox (only Firefox profiles that have been used) and Safari (once there's more than one). Mouse & Scrolling and Hidden Settings are planned; the research behind them is in [docs](docs/README.md).
+Today it handles links, your mouse's scrolling direction and cycling through a desktop's windows. Set it as the default browser and every link opens an "Open Link" window in the centre of the screen, listing each installed browser, and each profile for Chrome-family browsers, Firefox (only Firefox profiles that have been used) and Safari (once there's more than one). Hidden Settings and more of Mouse & Scrolling are planned; the research behind them is in [docs](docs/README.md).
 
 Press `1` to `9` to open straight away, or pick with the arrow keys and press Return, double-click a row, or click Open. Press `Esc`, click Cancel or the close button, or click outside the window to cancel.
 
@@ -18,7 +18,7 @@ It signs with the first Apple Development certificate in your keychain, so every
 
 ## Set up
 
-1. Open **System Settings > Desktop & Dock > Default web browser** and choose **Refined Settings** (or use **Use Refined Settings** in Refined Settings' Settings and confirm the macOS prompt).
+1. Open **System Settings > Desktop & Dock > Default web browser** and choose **Refined Settings** (or click **Set as Default…** under **Links** in Refined Settings' Settings and confirm the macOS prompt).
 2. Optional: click the menu bar icon and choose **Settings…**. Settings opens on the current desktop, and Refined Settings shows in the Dock while it's open, so you can assign it to a specific desktop from the Dock icon's **Options** menu. The list under **Links** matches the picker row for row: drag rows (or right-click one) to change the order, and switch off any browser or profile you don't want to see.
 
 ## Moving from Linkguide
@@ -40,6 +40,14 @@ defaults delete com.ikraam.linkguide
 Safari has no way for another app to open a link in a given profile, so Refined Settings uses Safari's own menu through the Accessibility API. It reads the profiles from the File menu's **New … Window** items. To open a link, it brings a window of that profile to the front (opening one if there's none), then hands Safari the link, which Safari opens in the profile in front.
 
 This needs Accessibility access: click **Allow Access…** in Refined Settings' Settings, then switch Refined Settings on in **System Settings > Privacy & Security > Accessibility**. Without it, Safari shows as a single row and opens links in whichever profile it picks. Refined Settings remembers the profiles for when Safari isn't running, and updates the list each time it can read Safari's menu.
+
+## Mouse scrolling
+
+**Mouse & Scrolling** in Settings shows your connected mouse and can reverse its vertical and horizontal scrolling separately, without changing your trackpad. It needs Accessibility access, and the event tap only runs while a switch is on. Don't reverse the same mouse in another app as well, or the two cancel out. The approach comes from [LinearMouse](https://github.com/linearmouse/linearmouse).
+
+## Desktops
+
+If you use the **Switch to Desktop N** shortcuts (**System Settings > Keyboard > Keyboard Shortcuts > Mission Control**), **Cycle through windows** under **Desktops** in Settings makes the shortcut for the desktop you're already on rotate through that desktop's windows, starting from the one at the back. Shortcuts for other desktops still switch desktops. It needs Accessibility access, and its keyboard event tap only runs while the switch is on. The tap reads only each key press's key code and modifiers, and passes on everything except that one shortcut.
 
 ## Known limitation
 

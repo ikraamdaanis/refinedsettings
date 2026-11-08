@@ -10,7 +10,11 @@ struct SettingsDetail: View {
             GeneralPane()
         case .links:
             LinksPane()
-        case .mouseAndScrolling, .hiddenSettings:
+        case .mouseAndScrolling:
+            MouseScrollingPane()
+        case .desktops:
+            DesktopsPane()
+        case .hiddenSettings:
             UnbuiltPane(pane: pane)
         }
     }

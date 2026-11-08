@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The centred card at the top of each pane, as in System Settings > General.
+/// The centred banner at the top of General, as in System Settings > General.
 struct PaneHeader: View {
     /// Where the window's toolbar ends, in window coordinates.
     nonisolated private static let toolbarBottom: CGFloat = 52

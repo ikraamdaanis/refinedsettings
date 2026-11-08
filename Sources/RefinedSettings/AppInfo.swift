@@ -13,6 +13,19 @@ enum AppInfo {
         Bundle(url: appURL)?.bundleIdentifier == Bundle.main.bundleIdentifier
     }
 
+    static func isDefaultBrowser(_ appURL: URL?) -> Bool {
+        guard let appURL else { return false }
+
+        return isRefinedSettings(appURL)
+    }
+
+    /// Opens a System Settings pane, given the identifier of its settings extension.
+    static func openSystemSettings(paneID: String) {
+        guard let url = URL(string: "x-apple.systempreferences:\(paneID)") else { return }
+
+        NSWorkspace.shared.open(url)
+    }
+
     /// The name Finder shows for the app, without the .app extension.
     static func name(of appURL: URL) -> String {
         let displayName = FileManager.default.displayName(atPath: appURL.path)

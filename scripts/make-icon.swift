@@ -1,4 +1,4 @@
-// Renders Resources/AppIcon.icns: a silver settings gear over a smaller inner gear, on a slate tile, with a blue
+// Renders Resources/AppIcon.icns: a silver settings gear over a smaller inner gear, on a baby blue tile, with a blue
 // hub as the accent. Drawn on Apple's 1024 pt icon grid.
 // Run from the repo root: swift scripts/make-icon.swift
 import AppKit
@@ -72,12 +72,12 @@ func drawIcon(in context: CGContext) {
     context.fillPath()
     context.restoreGState()
 
-    // A cool slate grey instead of System Settings' neutral grey.
+    // A light baby blue instead of System Settings' neutral grey.
     context.saveGState()
     context.addPath(tilePath)
     context.clip()
 
-    if let background = linearGradient([color(0x8A93A3), color(0x4B5262)]) {
+    if let background = linearGradient([color(0xB5DEF8), color(0x79B8E8)]) {
         context.drawLinearGradient(background, start: CGPoint(x: 512, y: tile.maxY), end: CGPoint(x: 512, y: tile.minY), options: [])
     }
 
@@ -89,11 +89,11 @@ func drawIcon(in context: CGContext) {
 
     // The inner gear, set back behind the main one.
     context.saveGState()
-    context.setAlpha(0.55)
+    context.setAlpha(0.95)
     context.beginTransparencyLayer(auxiliaryInfo: nil)
     context.setFillColor(color(0xFFFFFF))
     fillGearRing(in: context, toothCount: 26, rootRadius: 196, tipRadius: 222, toothWidth: 24, holeRadius: 158, rotation: 0.06)
-    applyMetal(in: context, top: 734, bottom: 290, light: 0xE6E9EF, dark: 0xA9B0BC)
+    applyMetal(in: context, top: 734, bottom: 290, light: 0x5C9FDB, dark: 0x3B7CC2)
     context.endTransparencyLayer()
     context.restoreGState()
 

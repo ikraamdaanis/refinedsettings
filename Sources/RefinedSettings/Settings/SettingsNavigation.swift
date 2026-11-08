@@ -9,7 +9,7 @@ final class SettingsNavigation: ObservableObject {
             window?.title = pane.title
         }
     }
-    /// The toolbar shows the pane's title only while the pane's own header is out of view.
+    /// General's banner is its title, so the toolbar shows General's name only once the banner is out of view.
     @Published var isHeaderVisible = true
     @Published private var backHistory: [SettingsPane] = []
     @Published private var forwardHistory: [SettingsPane] = []
@@ -45,7 +45,7 @@ final class SettingsNavigation: ObservableObject {
         pane = nextPane
     }
 
-    private func select(_ newPane: SettingsPane) {
+    func select(_ newPane: SettingsPane) {
         guard newPane != pane else { return }
 
         backHistory.append(pane)

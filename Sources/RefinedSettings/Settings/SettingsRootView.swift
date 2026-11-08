@@ -27,7 +27,7 @@ struct SettingsRootView: View {
                 }
         }
         .searchable(text: $searchText, placement: .sidebar, prompt: "Search")
-        .hidingToolbarTitle(navigation.isHeaderVisible)
+        .hidingToolbarTitle(navigation.pane == .general && navigation.isHeaderVisible)
         .environmentObject(navigation)
     }
 }

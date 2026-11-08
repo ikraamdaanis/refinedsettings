@@ -7,6 +7,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var hasFinishedLaunching = false
     private var urlsReceivedDuringLaunch: [URL] = []
     private let settingsWindow = SettingsWindowController()
+    private let mouseScrollReversal = EventTapSupervisor(isWanted: { MouseScrollSetting.reversesAnyAxis }, makeTap: ScrollReverser.makeTap)
+    private let desktopCycling = EventTapSupervisor(isWanted: { DesktopCyclingSetting.isOn }, makeTap: DesktopCycler.makeTap)
     private lazy var picker = PickerController(isSettingsVisible: { [weak self] in
         self?.settingsWindow.isVisible ?? false
     })
@@ -14,7 +16,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         installMainMenu()
         installStatusItem()
-        NotificationCenter.default.addObserver(self, selector: #selector(syncMenuBarIcon), name: UserDefaults.didChangeNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(syncWithSettings), name: UserDefaults.didChangeNotification, object: nil)
+        mouseScrollReversal.sync()
+        desktopCycling.sync()
         hasFinishedLaunching = true
 
         // With no menu bar icon, opening the app is the only way to reach Settings.
@@ -33,7 +37,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             && launchEvent.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue == keyAELaunchedAsLogInItem
     }
 
-    @objc private func syncMenuBarIcon() {
+    @objc private func syncWithSettings() {
+        mouseScrollReversal.sync()
+        desktopCycling.sync()
+        syncMenuBarIcon()
+    }
+
+    private func syncMenuBarIcon() {
         let isShown = MenuBarIconSetting.isShown
 
         guard isShown != isMenuBarIconShown else { return }

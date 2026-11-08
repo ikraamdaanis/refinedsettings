@@ -6,6 +6,7 @@ struct GeneralPane: View {
     @AppStorage(MenuBarIconSetting.key) private var showsMenuBarIcon = true
     @State private var loginItemStatus = SMAppService.mainApp.status
     @State private var hasAccessibilityAccess = AXIsProcessTrusted()
+    @State private var defaultBrowserURL = AppInfo.defaultBrowserURL()
 
     /// Registering from anywhere else (a build folder, say) would add a second entry to Login Items.
     private var isInstalled: Bool {
@@ -24,11 +25,20 @@ struct GeneralPane: View {
             Section {
                 PaneHeader(pane: .general)
             }
-            Section {
-                Toggle("Launch at login", isOn: launchesAtLogin)
-                    .toggleStyle(.switch)
-                    .controlSize(.mini)
-                    .disabled(!isInstalled)
+            Section("Features") {
+                FeatureRow(pane: .links, status: AppInfo.isDefaultBrowser(defaultBrowserURL) ? "On" : "Needs Setup")
+                FeatureRow(pane: .mouseAndScrolling, status: MouseScrollSetting.reversesAnyAxis ? "On" : "Off")
+                FeatureRow(pane: .desktops, status: DesktopCyclingSetting.isOn ? "On" : "Off")
+                FeatureRow(pane: .hiddenSettings, status: "Coming Soon")
+            }
+            Section("App") {
+                Toggle(isOn: launchesAtLogin) {
+                    Text("Launch at login")
+                    Text("Keeps your mouse and desktop settings working after you restart your Mac.")
+                }
+                .toggleStyle(.switch)
+                .controlSize(.mini)
+                .disabled(!isInstalled)
                 if loginItemStatus == .requiresApproval {
                     LabeledContent("Waiting for your approval in Login Items") {
                         Button("Open Login Items…") {
@@ -36,19 +46,15 @@ struct GeneralPane: View {
                         }
                     }
                 }
-                Toggle("Show menu bar icon", isOn: $showsMenuBarIcon)
-                    .toggleStyle(.switch)
-                    .controlSize(.mini)
-            } footer: {
-                if !showsMenuBarIcon {
-                    Text("To open Settings while the icon is hidden, open Refined Settings again from Applications or Spotlight.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                Toggle(isOn: $showsMenuBarIcon) {
+                    Text("Show menu bar icon")
+                    Text(showsMenuBarIcon ? "A quick way to open these settings." : "To open these settings while the icon is hidden, open Refined Settings again from Applications or Spotlight.")
                 }
+                .toggleStyle(.switch)
+                .controlSize(.mini)
             }
             Section("Permissions") {
-                LabeledContent("Accessibility") {
+                LabeledContent {
                     if hasAccessibilityAccess {
                         Text("Allowed")
                     } else {
@@ -56,10 +62,13 @@ struct GeneralPane: View {
                             SafariProfiles.requestAccess()
                         }
                     }
+                } label: {
+                    Text("Accessibility")
+                    Text("Needed to change mouse scrolling, respond to desktop shortcuts and open Safari profiles. Only the features you turn on use it.")
                 }
             }
         }
-        .formStyle(.grouped)
+        .paneFormStyle()
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refresh()
         }
@@ -82,5 +91,6 @@ struct GeneralPane: View {
     private func refresh() {
         loginItemStatus = SMAppService.mainApp.status
         hasAccessibilityAccess = AXIsProcessTrusted()
+        defaultBrowserURL = AppInfo.defaultBrowserURL()
     }
 }
