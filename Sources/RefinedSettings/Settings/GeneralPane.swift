@@ -27,7 +27,9 @@ struct GeneralPane: View {
                 PaneHeader(pane: .general)
             }
             Section("Features") {
-                FeatureRow(pane: .desktopAndDock, status: DesktopCyclingSetting.isOn || systemPreferences.changedCount(in: SystemPreference.dockPreferences) > 0 ? "On" : "Off")
+                FeatureRow(pane: .desktopAndDock, status: DesktopCyclingSetting.isOn || systemPreferences.changedCount(in: SystemPreference.dockPreferences + [.windowsDragOnGesture]) > 0 ? "On" : "Off")
+                FeatureRow(pane: .menuBar, status: changeSummary(of: SystemPreference.menuBarPreferences))
+                FeatureRow(pane: .finder, status: changeSummary(of: SystemPreference.finderPreferences))
                 FeatureRow(pane: .links, status: AppInfo.isDefaultBrowser(defaultBrowserURL) ? "On" : "Needs Setup")
                 FeatureRow(pane: .screenshots, status: changeSummary(of: SystemPreference.screenshotPreferences))
                 FeatureRow(pane: .keyboard, status: changeSummary(of: SystemPreference.keyboardPreferences))

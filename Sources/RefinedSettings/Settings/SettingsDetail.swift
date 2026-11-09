@@ -10,6 +10,10 @@ struct SettingsDetail: View {
             GeneralPane()
         case .desktopAndDock:
             DesktopAndDockPane()
+        case .menuBar:
+            MenuBarPane()
+        case .finder:
+            FinderPane()
         case .links:
             LinksPane()
         case .screenshots:
