@@ -32,6 +32,16 @@ struct DesktopAndDockPane: View {
                 PaneSummary(pane: .desktopAndDock)
             }
             DockSection()
+            Section {
+                SystemPreferenceToggleRow(
+                    title: "Drag windows from anywhere",
+                    detail: "Hold ⌃⌘ and drag any part of a window to move it. In some apps ⌃⌘-click also opens a menu.",
+                    preference: .windowsDragOnGesture,
+                    unsetValue: false
+                )
+            } header: {
+                PaneSectionHeader(title: "Windows", help: "Apps you already have open need reopening to pick this up.")
+            }
             Section("Mission Control") {
                 Toggle(isOn: isCyclingBinding) {
                     Text("Cycle through windows")
