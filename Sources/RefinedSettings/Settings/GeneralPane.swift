@@ -57,6 +57,14 @@ struct GeneralPane: View {
                 .toggleStyle(.switch)
                 .controlSize(.mini)
             }
+            Section("Logging In") {
+                SystemPreferenceToggleRow(
+                    title: "Reopen windows when logging back in",
+                    detail: "Sets the tick box you see when you log out or restart. Turn it off to start with a clean desktop.",
+                    preference: .reopensWindowsAtLogin,
+                    unsetValue: true
+                )
+            }
             Section("Permissions") {
                 LabeledContent {
                     if hasAccessibilityAccess {
