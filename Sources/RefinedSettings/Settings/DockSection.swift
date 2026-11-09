@@ -34,14 +34,7 @@ struct DockSection: View {
                 )
             }
             .disabled(!dockHidesItself)
-            if store.needsDockRestart {
-                LabeledContent {
-                    Button("Restart Dock", action: store.restartDock)
-                } label: {
-                    Text("Restart the Dock to apply")
-                    Text("The Dock and Mission Control blink for a moment.")
-                }
-            }
+            AppRestartRow(app: .dock, detail: "The Dock and Mission Control blink for a moment.")
         } header: {
             PaneSectionHeader(title: "Dock", help: "How quickly the Dock comes back when it's set to hide itself.")
         }

@@ -7,28 +7,22 @@ import SwiftUI
 final class SystemPreferenceStore: ObservableObject {
     static let shared = SystemPreferenceStore()
 
-    /// The Dock process running when a Dock setting last changed. If that one is still running, it hasn't applied it.
-    private static let dockAwaitingRestartKey = "systemPreferences.dockProcessAwaitingRestart"
-    private static let dockBundleIdentifier = "com.apple.dock"
-
-    private var runningDock: NSRunningApplication? {
-        NSRunningApplication.runningApplications(withBundleIdentifier: Self.dockBundleIdentifier).first
-    }
-
-    var needsDockRestart: Bool {
-        guard let runningDock else { return false }
-
-        return UserDefaults.standard.integer(forKey: Self.dockAwaitingRestartKey) == Int(runningDock.processIdentifier)
-    }
-
-    var screenshotFormat: ScreenshotFormat {
-        guard let stored = SystemPreference.screenshotFormat.storedValue as? String else { return .macOSDefault }
-
-        return ScreenshotFormat(rawValue: stored) ?? .macOSDefault
-    }
+    private static let tightMenuBarSpacing = 6
 
     var screenshotName: String? {
         SystemPreference.screenshotName.storedValue as? String
+    }
+
+    var usesTightMenuBar: Binding<Bool> {
+        Binding(
+            get: { self.isChanged(.menuBarItemSpacing) },
+            set: { isOn in
+                let value = isOn ? NSNumber(value: Self.tightMenuBarSpacing) : nil
+
+                self.write(value, to: .menuBarItemSpacing)
+                self.write(value, to: .menuBarItemPadding)
+            }
+        )
     }
 
     func isChanged(_ preference: SystemPreference) -> Bool {
@@ -39,12 +33,21 @@ final class SystemPreferenceStore: ObservableObject {
         preferences.filter { preference in isChanged(preference) }.count
     }
 
+    /// Terminal guides often store these as the text "YES", which macOS treats the same as a real boolean.
     func bool(_ preference: SystemPreference, whenUnset unsetValue: Bool) -> Bool {
-        preference.storedValue as? Bool ?? unsetValue
+        let storedValue = preference.storedValue
+
+        if let text = storedValue as? String { return (text as NSString).boolValue }
+
+        return storedValue as? Bool ?? unsetValue
     }
 
     func double(_ preference: SystemPreference, whenUnset unsetValue: Double) -> Double {
         preference.storedValue as? Double ?? unsetValue
+    }
+
+    func string(_ preference: SystemPreference, whenUnset unsetValue: String) -> String {
+        preference.storedValue as? String ?? unsetValue
     }
 
     /// A switch that is on when the preference holds `valueWhenOn`. Moving it to the macOS default deletes the key, so
@@ -67,10 +70,10 @@ final class SystemPreferenceStore: ObservableObject {
         )
     }
 
-    var screenshotFormatBinding: Binding<ScreenshotFormat> {
+    func choiceBinding(for preference: SystemPreference, whenUnset unsetValue: String) -> Binding<String> {
         Binding(
-            get: { self.screenshotFormat },
-            set: { format in self.write(format == .macOSDefault ? nil : format.rawValue as CFString, to: .screenshotFormat) }
+            get: { self.string(preference, whenUnset: unsetValue) },
+            set: { choice in self.write(choice == unsetValue ? nil : choice as CFString, to: preference) }
         )
     }
 
@@ -93,29 +96,48 @@ final class SystemPreferenceStore: ObservableObject {
 
     func reset(_ preference: SystemPreference) {
         write(nil, to: preference)
+
+        if preference == .menuBarItemSpacing {
+            write(nil, to: .menuBarItemPadding)
+        }
     }
 
     func refresh() {
         objectWillChange.send()
 
-        for preference in SystemPreference.screenshotPreferences + SystemPreference.dockPreferences + SystemPreference.keyboardPreferences + [.dockAutohide] {
+        for preference in SystemPreference.everyPreference {
             preference.synchronize()
         }
     }
 
-    /// launchd only brings the Dock back after an unsuccessful exit, so a normal quit would leave it gone. This signals
-    /// the one process by its ID, which is what `killall Dock` does without matching on a name.
-    func restartDock() {
-        guard let runningDock else { return }
+    /// True while the process that was running when one of its settings changed is still the one running.
+    func needsRestart(_ app: RestartableApp) -> Bool {
+        guard let running = running(app) else { return false }
 
-        guard kill(runningDock.processIdentifier, SIGTERM) == 0 else {
-            log.error("Couldn't restart the Dock: \(String(cString: strerror(errno)), privacy: .public)")
+        return UserDefaults.standard.integer(forKey: awaitingRestartKey(app)) == Int(running.processIdentifier)
+    }
+
+    /// launchd only brings these back after an unsuccessful exit, so a normal quit could leave them gone. This signals
+    /// the one process by its ID, which is what `killall` does without matching on a name.
+    func restart(_ app: RestartableApp) {
+        guard let running = running(app) else { return }
+
+        guard kill(running.processIdentifier, SIGTERM) == 0 else {
+            log.error("Couldn't restart \(app.name, privacy: .public): \(String(cString: strerror(errno)), privacy: .public)")
 
             return
         }
 
         objectWillChange.send()
-        UserDefaults.standard.removeObject(forKey: Self.dockAwaitingRestartKey)
+        UserDefaults.standard.removeObject(forKey: awaitingRestartKey(app))
+    }
+
+    private func running(_ app: RestartableApp) -> NSRunningApplication? {
+        NSRunningApplication.runningApplications(withBundleIdentifier: app.rawValue).first
+    }
+
+    private func awaitingRestartKey(_ app: RestartableApp) -> String {
+        "systemPreferences.awaitingRestart.\(app.rawValue)"
     }
 
     private func write(_ value: CFPropertyList?, to preference: SystemPreference) {
@@ -127,8 +149,8 @@ final class SystemPreferenceStore: ObservableObject {
             return
         }
 
-        if preference.isDockPreference, let runningDock {
-            UserDefaults.standard.set(Int(runningDock.processIdentifier), forKey: Self.dockAwaitingRestartKey)
+        if let app = preference.appNeedingRestart, let running = running(app) {
+            UserDefaults.standard.set(Int(running.processIdentifier), forKey: awaitingRestartKey(app))
         }
     }
 }

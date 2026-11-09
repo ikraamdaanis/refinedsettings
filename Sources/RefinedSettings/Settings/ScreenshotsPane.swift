@@ -1,28 +1,25 @@
 import SwiftUI
 
 struct ScreenshotsPane: View {
-    @ObservedObject private var store = SystemPreferenceStore.shared
-
     var body: some View {
         Form {
             Section {
                 PaneSummary(pane: .screenshots)
             }
             Section {
-                SystemPreferenceRow(
+                SystemPreferencePickerRow(
                     title: "File format",
                     detail: "JPG and HEIC make smaller files. PNG keeps every detail.",
-                    isChanged: store.isChanged(.screenshotFormat),
-                    reset: { store.reset(.screenshotFormat) }
-                ) {
-                    Picker("File format", selection: store.screenshotFormatBinding) {
-                        ForEach(ScreenshotFormat.allCases) { format in
-                            Text(format.title).tag(format)
-                        }
-                    }
-                    .labelsHidden()
-                    .fixedSize()
-                }
+                    preference: .screenshotFormat,
+                    unsetValue: "png",
+                    choices: [
+                        (storedValue: "png", title: "PNG"),
+                        (storedValue: "jpg", title: "JPG"),
+                        (storedValue: "heic", title: "HEIC"),
+                        (storedValue: "pdf", title: "PDF"),
+                        (storedValue: "tiff", title: "TIFF"),
+                    ]
+                )
                 SystemPreferenceToggleRow(
                     title: "Window shadow",
                     detail: "Adds the soft shadow around a single window you capture. Turn it off for tighter images.",
