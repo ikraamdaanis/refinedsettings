@@ -6,6 +6,8 @@ struct SystemPreferenceSliderRow: View {
     let detail: String
     let preference: SystemPreference
     let unsetValue: Double
+    /// Only the slider turns off, so a value that has already been changed can still be reset.
+    var isAdjustable = true
     @ObservedObject private var store = SystemPreferenceStore.shared
 
     private var valueText: String {
@@ -19,6 +21,7 @@ struct SystemPreferenceSliderRow: View {
             Slider(value: store.sliderBinding(for: preference, whenUnset: unsetValue), in: 0...2, step: 0.05)
                 .labelsHidden()
                 .frame(width: 130)
+                .disabled(!isAdjustable)
                 .accessibilityLabel(title)
                 .accessibilityValue(valueText)
             Text(valueText)
