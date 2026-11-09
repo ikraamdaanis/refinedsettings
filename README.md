@@ -51,7 +51,16 @@ If you use the **Switch to Desktop N** shortcuts (**System Settings > Keyboard >
 
 ## Options macOS doesn't show
 
-Settings is organised like System Settings, so these sit with the things they relate to. **Desktop & Dock** sets how quickly an auto-hiding Dock appears, **Screenshots** sets the file format, window shadow and file name, and **Keyboard** sets whether holding a key repeats it. Each row's reset button deletes the preference, so the macOS default comes back. Dock changes wait for the **Restart Dock** button, and open apps need reopening to pick up the keyboard setting. No permissions are needed.
+Settings is organised like System Settings, so these sit with the things they relate to:
+
+- **General** sets whether windows reopen when you log back in.
+- **Desktop & Dock** sets how quickly an auto-hiding Dock appears, dims hidden apps, locks the Dock's size, items or position, and lets ⌃⌘ drag a window from anywhere.
+- **Menu Bar** turns off the icons macOS 26 added to menus and tightens the spacing of menu bar icons.
+- **Finder** shows the full path and hidden files, picks the default folder and search views, and stops `.DS_Store` files on network drives.
+- **Screenshots** sets the file format, window shadow and file name.
+- **Keyboard** sets whether holding a key repeats it, and controls smart quotes and smart dashes separately.
+
+Each row's reset button deletes the preference, so the macOS default comes back. Dock and Finder changes wait for their **Restart** button, and open apps need reopening to pick up window dragging, menu and keyboard changes. Some options, such as menu bar spacing and `.DS_Store` files, need you to log out and back in. No permissions are needed.
 
 ## Known limitation
 
