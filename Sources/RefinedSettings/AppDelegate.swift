@@ -8,7 +8,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var urlsReceivedDuringLaunch: [URL] = []
     private let settingsWindow = SettingsWindowController()
     private let mouseScrollReversal = EventTapSupervisor(isWanted: { MouseScrollSetting.reversesAnyAxis }, makeTap: ScrollReverser.makeTap)
-    private let desktopCycling = EventTapSupervisor(isWanted: { DesktopCyclingSetting.isOn }, makeTap: DesktopCycler.makeTap)
+    private let desktopCycling = DesktopCycler()
     private lazy var picker = PickerController(isSettingsVisible: { [weak self] in
         self?.settingsWindow.isVisible ?? false
     })

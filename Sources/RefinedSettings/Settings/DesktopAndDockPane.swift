@@ -50,7 +50,7 @@ struct DesktopAndDockPane: View {
                 .toggleStyle(.switch)
                 .controlSize(.mini)
                 if isCycling && !hasAccessibilityAccess {
-                    AccessibilityAccessRow(reason: "Refined Settings can't respond to your shortcuts without it.")
+                    AccessibilityAccessRow(reason: "Refined Settings can't bring windows forward without it.")
                 }
             }
             Section {

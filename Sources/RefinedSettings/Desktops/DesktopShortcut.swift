@@ -3,7 +3,7 @@ import CoreGraphics
 import Foundation
 
 /// A "Switch to Desktop N" shortcut from System Settings > Keyboard > Keyboard Shortcuts > Mission Control.
-struct DesktopShortcut {
+struct DesktopShortcut: Equatable {
     /// The modifier bits macOS stores for a shortcut are the same as `CGEventFlags`.
     private static let modifierMask: CGEventFlags = [.maskShift, .maskControl, .maskAlternate, .maskCommand, .maskSecondaryFn]
     /// AppleSymbolicHotKeys IDs 118 to 126 are "Switch to Desktop 1" to "Switch to Desktop 9".
@@ -44,8 +44,30 @@ struct DesktopShortcut {
         return modifierSymbols + key
     }
 
-    func matches(_ event: CGEvent) -> Bool {
-        event.getIntegerValueField(.keyboardEventKeycode) == keyCode && event.flags.intersection(Self.modifierMask) == modifiers
+    /// The modifiers in the form hot keys take. Hot keys can't include fn, which macOS adds by itself to the arrow and
+    /// function keys anyway.
+    var carbonModifiers: UInt32 {
+        let carbonEquivalents: [(flag: CGEventFlags, modifier: Int)] = [
+            (.maskCommand, cmdKey),
+            (.maskShift, shiftKey),
+            (.maskAlternate, optionKey),
+            (.maskControl, controlKey),
+        ]
+
+        return carbonEquivalents
+            .filter { equivalent in modifiers.contains(equivalent.flag) }
+            .reduce(0) { combined, equivalent in combined | UInt32(equivalent.modifier) }
+    }
+
+    /// Presses the shortcut as if from the keyboard.
+    func post() {
+        let source = CGEventSource(stateID: .hidSystemState)
+
+        for isKeyDown in [true, false] {
+            let event = CGEvent(keyboardEventSource: source, virtualKey: CGKeyCode(keyCode), keyDown: isKeyDown)
+            event?.flags = modifiers
+            event?.post(tap: .cghidEventTap)
+        }
     }
 
     /// Reads the file itself because CFPreferences would keep serving this process a cached copy.

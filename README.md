@@ -47,7 +47,7 @@ This needs Accessibility access: click **Allow Access…** in Refined Settings' 
 
 ## Desktops
 
-If you use the **Switch to Desktop N** shortcuts (**System Settings > Keyboard > Keyboard Shortcuts > Mission Control**), **Cycle through windows** under **Desktop & Dock** in Settings makes the shortcut for the desktop you're already on rotate through that desktop's windows, starting from the one at the back. Shortcuts for other desktops still switch desktops. It needs Accessibility access, and its keyboard event tap only runs while the switch is on. The tap reads only each key press's key code and modifiers, and passes on everything except that one shortcut.
+If you use the **Switch to Desktop N** shortcuts (**System Settings > Keyboard > Keyboard Shortcuts > Mission Control**), **Cycle through windows** under **Desktop & Dock** in Settings makes the shortcut for the desktop you're already on rotate through that desktop's windows, starting from the one at the back. Shortcuts for other desktops still switch desktops. It needs Accessibility access to bring windows forward. While the switch is on, the app registers only the current desktop's shortcut as a hot key and moves it when you change desktops, so it doesn't read your typing, and it keeps working when an app turns on Secure Input for a password field.
 
 ## Options macOS doesn't show
 
