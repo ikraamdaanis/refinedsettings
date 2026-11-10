@@ -27,7 +27,7 @@ enum SettingsPane: Hashable, CaseIterable {
 
     var summary: String {
         switch self {
-        case .general: "Small improvements to your Mac that macOS doesn't offer. Nothing changes until you turn it on."
+        case .general: "Extra settings to go with the ones macOS already has. Nothing changes until you turn it on."
         case .desktopAndDock: "Fine-tune the Dock, move windows more easily, and use your Switch to Desktop shortcuts to go through the windows on the desktop you're already on."
         case .menuBar: "Tidy the menu bar and the menus that drop down from it."
         case .finder: "Show more in Finder windows and choose how folders and search results are laid out."
@@ -35,6 +35,20 @@ enum SettingsPane: Hashable, CaseIterable {
         case .screenshots: "Choose the file format and name for your screenshots, and whether captured windows keep their shadow."
         case .keyboard: "Choose what happens when you hold down a key, how fast it repeats, and whether quotes and dashes change as you type."
         case .mouse: "Set your mouse's scroll direction without changing your trackpad. macOS has one setting for both."
+        }
+    }
+
+    /// The version of `summary` for General's list, short enough to fit on one line beside a row's status.
+    var rowSummary: String {
+        switch self {
+        case .general: summary
+        case .desktopAndDock: "Fine-tune the Dock and move windows more easily."
+        case .menuBar: "Tidy the menu bar and its menus."
+        case .finder: "Show more in Finder and choose default views."
+        case .links: "Choose which browser each link opens in."
+        case .screenshots: "Choose the format, file name and window shadow."
+        case .keyboard: "Set key repeat, smart quotes and smart dashes."
+        case .mouse: "Set mouse scrolling apart from your trackpad."
         }
     }
 

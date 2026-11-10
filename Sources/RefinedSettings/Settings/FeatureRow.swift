@@ -14,7 +14,7 @@ struct FeatureRow: View {
                 PaneIcon(pane: pane, size: 22)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(pane.title)
-                    Text(pane.summary)
+                    Text(pane.rowSummary)
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
