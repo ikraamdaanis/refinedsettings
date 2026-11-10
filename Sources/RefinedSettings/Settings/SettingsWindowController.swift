@@ -9,7 +9,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     /// System Settings' window on macOS 26: a fixed width that only resizes vertically.
     private static let contentWidth: CGFloat = 723
     private static let defaultContentHeight: CGFloat = 565
-    private static let minimumContentHeight: CGFloat = 420
+    private static let minimumContentHeight: CGFloat = 470
 
     private var window: NSWindow?
     private let navigation = SettingsNavigation()
@@ -32,6 +32,11 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         NSApp.setActivationPolicy(.regular)
         NSApp.activateRefinedSettings()
         settingsWindow.makeKeyAndOrderFront(nil)
+    }
+
+    /// `contentMinSize` and `contentMaxSize` don't hold here: the window could still be dragged past them.
+    func windowWillResize(_ sender: NSWindow, to frameSize: NSSize) -> NSSize {
+        NSSize(width: Self.contentWidth, height: max(frameSize.height, Self.minimumContentHeight))
     }
 
     func windowWillClose(_ notification: Notification) {
@@ -64,8 +69,6 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         hostingController.view.setFrameSize(contentSize)
         newWindow.contentViewController = hostingController
         newWindow.setContentSize(contentSize)
-        newWindow.contentMinSize = NSSize(width: Self.contentWidth, height: Self.minimumContentHeight)
-        newWindow.contentMaxSize = NSSize(width: Self.contentWidth, height: .greatestFiniteMagnitude)
         newWindow.title = navigation.pane.title
         newWindow.toolbarStyle = .unified
         // Like System Settings, and full screen breaks the sidebar on macOS 26.
