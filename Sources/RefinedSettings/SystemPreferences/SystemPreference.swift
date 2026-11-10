@@ -52,6 +52,8 @@ extension SystemPreference {
     static let dockLocksPosition = SystemPreference(domain: dockDomain, key: "position-immutable")
     static let windowsDragOnGesture = SystemPreference(domain: globalDomain, key: "NSWindowShouldDragOnGesture")
     static let pressAndHoldShowsAccents = SystemPreference(domain: globalDomain, key: "ApplePressAndHoldEnabled")
+    static let keyRepeatRate = SystemPreference(domain: globalDomain, key: "KeyRepeat")
+    static let keyRepeatDelay = SystemPreference(domain: globalDomain, key: "InitialKeyRepeat")
     static let smartQuotes = SystemPreference(domain: globalDomain, key: "NSAutomaticQuoteSubstitutionEnabled")
     static let smartDashes = SystemPreference(domain: globalDomain, key: "NSAutomaticDashSubstitutionEnabled")
     static let finderShowsFullPath = SystemPreference(domain: finderDomain, key: "_FXShowPosixPathInTitle")
@@ -67,7 +69,7 @@ extension SystemPreference {
     static let screenshotPreferences = [screenshotFormat, screenshotDisablesShadow, screenshotIncludesDate, screenshotName]
     /// `dockAutohide` is left out because the app only reads it.
     static let dockPreferences = [dockAutohideDelay, dockAutohideAnimationTime, dockDimsHiddenApps, dockLocksSize, dockLocksItems, dockLocksPosition]
-    static let keyboardPreferences = [pressAndHoldShowsAccents, smartQuotes, smartDashes]
+    static let keyboardPreferences = [pressAndHoldShowsAccents, keyRepeatRate, keyRepeatDelay, smartQuotes, smartDashes]
     static let finderPreferences = [finderShowsFullPath, finderShowsHiddenFiles, finderDefaultView, finderSearchView, skipsDSStoreOnNetworkDrives]
     /// The padding always changes along with the spacing, so the pair counts as one change.
     static let menuBarPreferences = [menusShowIcons, menuBarItemSpacing]

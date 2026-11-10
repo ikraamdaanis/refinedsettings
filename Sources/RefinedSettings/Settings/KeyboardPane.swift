@@ -14,8 +14,26 @@ struct KeyboardPane: View {
                     unsetValue: true,
                     valueWhenOn: false
                 )
+                SystemPreferenceStopsSliderRow(
+                    title: "Key repeat rate",
+                    detail: "How fast a held key repeats. The far right is quicker than System Settings goes.",
+                    preference: .keyRepeatRate,
+                    stops: [120, 90, 60, 30, 12, 6, 2, 1],
+                    unsetValue: 5,
+                    leadingLabel: "Slow",
+                    trailingLabel: "Fast"
+                )
+                SystemPreferenceStopsSliderRow(
+                    title: "Delay until repeat",
+                    detail: "How long you hold a key before it starts repeating. The far right is shorter than System Settings goes.",
+                    preference: .keyRepeatDelay,
+                    stops: [120, 94, 68, 35, 25, 15, 10],
+                    unsetValue: 30,
+                    leadingLabel: "Long",
+                    trailingLabel: "Short"
+                )
             } header: {
-                PaneSectionHeader(title: "Key Repeat", help: "Apps you already have open need reopening to pick this up.")
+                PaneSectionHeader(title: "Key Repeat", help: "Open apps need reopening to pick up the switch. The rate and delay apply after you log out and back in.")
             }
             Section {
                 SystemPreferenceToggleRow(

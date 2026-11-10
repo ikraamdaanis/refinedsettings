@@ -70,6 +70,19 @@ final class SystemPreferenceStore: ObservableObject {
         )
     }
 
+    /// The slider's position in `stops`. A value set elsewhere, which may not be a stop, shows at the nearest one.
+    func stopBinding(for preference: SystemPreference, stops: [Int], whenUnset unsetValue: Int) -> Binding<Double> {
+        Binding(
+            get: {
+                let current = Int(self.double(preference, whenUnset: Double(unsetValue)))
+                let nearest = stops.indices.min { candidate, closest in abs(stops[candidate] - current) < abs(stops[closest] - current) }
+
+                return Double(nearest ?? 0)
+            },
+            set: { position in self.write(NSNumber(value: stops[Int(position)]), to: preference) }
+        )
+    }
+
     func choiceBinding(for preference: SystemPreference, whenUnset unsetValue: String) -> Binding<String> {
         Binding(
             get: { self.string(preference, whenUnset: unsetValue) },

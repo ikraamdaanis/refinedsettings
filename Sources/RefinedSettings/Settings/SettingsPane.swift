@@ -33,7 +33,7 @@ enum SettingsPane: Hashable, CaseIterable {
         case .finder: "Show more in Finder windows and choose how folders and search results are laid out."
         case .links: "Choose which browser each link opens in. Click a link in any app and a small window asks where to open it."
         case .screenshots: "Choose the file format and name for your screenshots, and whether captured windows keep their shadow."
-        case .keyboard: "Choose what happens when you hold down a key, and whether quotes and dashes change as you type."
+        case .keyboard: "Choose what happens when you hold down a key, how fast it repeats, and whether quotes and dashes change as you type."
         case .mouse: "Set your mouse's scroll direction without changing your trackpad. macOS has one setting for both."
         }
     }
@@ -84,7 +84,7 @@ enum SettingsPane: Hashable, CaseIterable {
         case .finder: ["hidden files", "path", "title bar", "view", "search", "ds_store", "network"]
         case .links: ["browser", "default", "picker", "profile", "safari", "chrome", "firefox", "url"]
         case .screenshots: ["capture", "format", "png", "jpg", "heic", "shadow", "file name"]
-        case .keyboard: ["accent", "repeat", "hold", "press and hold", "typing", "smart quotes", "dashes", "text input"]
+        case .keyboard: ["accent", "repeat", "hold", "press and hold", "typing", "smart quotes", "dashes", "text input", "delay", "rate", "speed"]
         case .mouse: ["scroll", "wheel", "pointer", "acceleration", "reverse", "smooth", "vertical", "horizontal"]
         }
     }

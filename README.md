@@ -58,9 +58,9 @@ Settings is organised like System Settings, so these sit with the things they re
 - **Menu Bar** turns off the icons macOS 26 added to menus and tightens the spacing of menu bar icons.
 - **Finder** shows the full path and hidden files, picks the default folder and search views, and stops `.DS_Store` files on network drives.
 - **Screenshots** sets the file format, window shadow and file name.
-- **Keyboard** sets whether holding a key repeats it, and controls smart quotes and smart dashes separately.
+- **Keyboard** sets whether holding a key repeats it, how fast it repeats (including faster than System Settings goes), and controls smart quotes and smart dashes separately.
 
-Each row's reset button deletes the preference, so the macOS default comes back. Dock and Finder changes wait for their **Restart** button, and open apps need reopening to pick up window dragging, menu and keyboard changes. Some options, such as menu bar spacing and `.DS_Store` files, need you to log out and back in. No permissions are needed.
+Each row's reset button deletes the preference, so the macOS default comes back. Dock and Finder changes wait for their **Restart** button, and open apps need reopening to pick up window dragging, menu and keyboard changes. Some options, such as menu bar spacing, key repeat speed and `.DS_Store` files, need you to log out and back in. No permissions are needed.
 
 ## Known limitation
 
