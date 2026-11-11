@@ -10,6 +10,8 @@ final class DesktopCycler {
     fileprivate nonisolated static let signature: OSType = 0x5253_4443
     /// Picks up a shortcut changed in System Settings, which sends no notification.
     private static let shortcutRefreshInterval: Duration = .seconds(5)
+    /// Lets macOS line the refresh up with other timers rather than waking the Mac just for it.
+    private static let shortcutRefreshTolerance: Duration = .seconds(1)
 
     private var handler: EventHandlerRef?
     private var hotKey: EventHotKeyRef?
@@ -73,8 +75,15 @@ final class DesktopCycler {
         guard refreshTask == nil else { return }
 
         refreshTask = Task { [weak self] in
-            while !Task.isCancelled {
-                try? await Task.sleep(for: Self.shortcutRefreshInterval)
+            while true {
+                // Cancelling ends the sleep early. Carrying on from there would take the hot key straight back after
+                // the feature was switched off.
+                do {
+                    try await Task.sleep(for: Self.shortcutRefreshInterval, tolerance: Self.shortcutRefreshTolerance)
+                } catch {
+                    return
+                }
+
                 self?.registerShortcutForActiveDesktop()
             }
         }
@@ -92,6 +101,8 @@ final class DesktopCycler {
 
         guard let shortcut else { return }
 
+        // Recorded even if macOS refuses it, so a shortcut that can't be taken is tried once, not on every refresh.
+        registeredShortcut = shortcut
         var newHotKey: EventHotKeyRef?
         let hotKeyID = EventHotKeyID(signature: Self.signature, id: UInt32(shortcut.desktopNumber))
         let status = RegisterEventHotKey(UInt32(shortcut.keyCode), shortcut.carbonModifiers, hotKeyID, GetApplicationEventTarget(), 0, &newHotKey)
@@ -103,7 +114,6 @@ final class DesktopCycler {
         }
 
         hotKey = newHotKey
-        registeredShortcut = shortcut
     }
 
     private func unregisterHotKey() {
