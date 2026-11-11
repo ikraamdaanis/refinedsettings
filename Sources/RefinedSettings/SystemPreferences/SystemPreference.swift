@@ -74,4 +74,12 @@ extension SystemPreference {
     /// The padding always changes along with the spacing, so the pair counts as one change.
     static let menuBarPreferences = [menusShowIcons, menuBarItemSpacing]
     static let everyPreference = screenshotPreferences + dockPreferences + keyboardPreferences + finderPreferences + menuBarPreferences + [dockAutohide, windowsDragOnGesture, reopensWindowsAtLogin]
+    /// Synchronising reaches a whole domain at once, so one preference from each is enough to refresh them all.
+    static let onePreferencePerDomain: [SystemPreference] = {
+        var seenDomains = Set<SystemPreference>()
+
+        return everyPreference.filter { preference in
+            seenDomains.insert(SystemPreference(domain: preference.domain, key: "", isForThisMacOnly: preference.isForThisMacOnly)).inserted
+        }
+    }()
 }

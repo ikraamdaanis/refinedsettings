@@ -42,8 +42,12 @@ final class SystemPreferenceStore: ObservableObject {
         return storedValue as? Bool ?? unsetValue
     }
 
+    /// `defaults write` without `-float` or `-int` stores a number as text, which macOS still reads as a number.
     func double(_ preference: SystemPreference, whenUnset unsetValue: Double) -> Double {
-        preference.storedValue as? Double ?? unsetValue
+        let storedValue = preference.storedValue
+        let number = (storedValue as? String).flatMap { text in Double(text) } ?? storedValue as? Double
+
+        return number.flatMap { number in number.isFinite ? number : nil } ?? unsetValue
     }
 
     func string(_ preference: SystemPreference, whenUnset unsetValue: String) -> String {
@@ -74,8 +78,8 @@ final class SystemPreferenceStore: ObservableObject {
     func stopBinding(for preference: SystemPreference, stops: [Int], whenUnset unsetValue: Int) -> Binding<Double> {
         Binding(
             get: {
-                let current = Int(self.double(preference, whenUnset: Double(unsetValue)))
-                let nearest = stops.indices.min { candidate, closest in abs(stops[candidate] - current) < abs(stops[closest] - current) }
+                let current = self.double(preference, whenUnset: Double(unsetValue))
+                let nearest = stops.indices.min { candidate, closest in abs(Double(stops[candidate]) - current) < abs(Double(stops[closest]) - current) }
 
                 return Double(nearest ?? 0)
             },
@@ -118,7 +122,7 @@ final class SystemPreferenceStore: ObservableObject {
     func refresh() {
         objectWillChange.send()
 
-        for preference in SystemPreference.everyPreference {
+        for preference in SystemPreference.onePreferencePerDomain {
             preference.synchronize()
         }
     }
