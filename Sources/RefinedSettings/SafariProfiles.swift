@@ -36,7 +36,11 @@ enum SafariProfiles {
     static func profileNames() -> [String] {
         if hasAccess, let safari = runningSafari(), let profiles = menuProfiles(of: element(for: safari)) {
             let names = profiles.map { profile in profile.name }
-            UserDefaults.standard.set(names, forKey: namesKey)
+
+            // Only when they've changed: every write tells the whole app its settings changed.
+            if names != UserDefaults.standard.stringArray(forKey: namesKey) ?? [] {
+                UserDefaults.standard.set(names, forKey: namesKey)
+            }
 
             return names
         }
