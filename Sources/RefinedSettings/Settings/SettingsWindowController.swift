@@ -12,6 +12,8 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     private static let minimumContentHeight: CGFloat = 470
 
     private var window: NSWindow?
+    /// Carried from one window to the next, so Settings reopens at the height it was left at.
+    private var contentHeight = defaultContentHeight
     private let navigation = SettingsNavigation()
 
     var isVisible: Bool { window?.isVisible ?? false }
@@ -43,13 +45,28 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         NSApp.setActivationPolicy(.accessory)
 
         // Hand focus back to whatever was in front before Settings opened.
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [self] in
             NSApp.hide(nil)
+            releaseClosedWindow()
         }
     }
 
+    /// A closed window kept in memory keeps its panes running: their timers go on polling, and they all refresh each
+    /// time a link brings the app forward. Letting the window go stops that. `navigation` outlives it, so Settings
+    /// reopens on the same pane.
+    private func releaseClosedWindow() {
+        guard let closedWindow = window, !closedWindow.isVisible, !closedWindow.isMiniaturized else { return }
+
+        contentHeight = max(closedWindow.contentRect(forFrameRect: closedWindow.frame).height, Self.minimumContentHeight)
+        closedWindow.delegate = nil
+        closedWindow.contentViewController = nil
+        window = nil
+        // The next window opens scrolled to the top, where General's banner is in view.
+        navigation.isHeaderVisible = true
+    }
+
     private func makeWindow() -> NSWindow {
-        let contentSize = NSSize(width: Self.contentWidth, height: Self.defaultContentHeight)
+        let contentSize = NSSize(width: Self.contentWidth, height: contentHeight)
         let newWindow = NSWindow(
             contentRect: NSRect(origin: .zero, size: contentSize),
             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
