@@ -30,7 +30,7 @@ final class EventTapSupervisor {
             while !Task.isCancelled {
                 await checkAccess()
                 // Quickly while waiting for a grant. Once running, this matches LinearMouse's watchdog interval.
-                try? await Task.sleep(for: .seconds(tap == nil ? 2 : 10))
+                try? await Task.sleep(for: .seconds(tap == nil ? 2 : 10), tolerance: .seconds(1))
             }
         }
     }

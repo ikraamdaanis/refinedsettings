@@ -22,6 +22,10 @@ final class EventTap: @unchecked Sendable {
     private let threadName: String
     private let shouldKeepEvent: @Sendable (CGEvent) -> Bool
     private var port: CFMachPort?
+    /// Guards `runLoop` and `isStopped`, which the tap thread and the thread that stops it both use.
+    private let lock = NSLock()
+    private var runLoop: CFRunLoop?
+    private var isStopped = false
 
     init(
         location: CGEventTapLocation,
@@ -69,12 +73,26 @@ final class EventTap: @unchecked Sendable {
         return true
     }
 
-    /// Invalidating the port removes its run loop source, which ends the tap thread.
+    /// Invalidating the port takes its source off the run loop, but the loop goes on waiting, so it is stopped as
+    /// well. Otherwise every stopped tap would leave its thread, and this object, behind.
     func stop() {
         guard let port else { return }
 
         CGEvent.tapEnable(tap: port, enable: false)
         CFMachPortInvalidate(port)
+        let runLoop = lock.withLock {
+            isStopped = true
+
+            return self.runLoop
+        }
+
+        guard let runLoop else { return }
+
+        // Queued on the loop, because CFRunLoopStop does nothing to a loop that hasn't started running yet.
+        CFRunLoopPerformBlock(runLoop, CFRunLoopMode.commonModes.rawValue) {
+            CFRunLoopStop(runLoop)
+        }
+        CFRunLoopWakeUp(runLoop)
     }
 
     /// macOS can switch a tap off without saying so, for example around sleep.
@@ -85,9 +103,19 @@ final class EventTap: @unchecked Sendable {
     }
 
     private func runTapLoop() {
-        guard let port else { return }
+        // No source means the port is already invalid: the tap was stopped before this thread got going.
+        guard let port, let source = CFMachPortCreateRunLoopSource(nil, port, 0) else { return }
 
-        CFRunLoopAddSource(CFRunLoopGetCurrent(), CFMachPortCreateRunLoopSource(nil, port, 0), .commonModes)
+        let currentRunLoop: CFRunLoop = CFRunLoopGetCurrent()
+        let wasStopped = lock.withLock {
+            runLoop = currentRunLoop
+
+            return isStopped
+        }
+
+        guard !wasStopped else { return }
+
+        CFRunLoopAddSource(currentRunLoop, source, .commonModes)
         CGEvent.tapEnable(tap: port, enable: true)
         // The callback holds this object unretained, so it has to outlive the loop.
         withExtendedLifetime(self) {
