@@ -163,8 +163,8 @@ enum BrowserCatalog {
                 !AppInfo.isRefinedSettings(appURL),
                 let bundle = Bundle(url: appURL),
                 let bundleID = bundle.bundleIdentifier,
-                bundle.object(forInfoDictionaryKey: "LSUIElement") as? Bool != true,
-                bundle.object(forInfoDictionaryKey: "LSBackgroundOnly") as? Bool != true,
+                !isOn("LSUIElement", in: bundle),
+                !isOn("LSBackgroundOnly", in: bundle),
                 seenBundleIDs.insert(bundleID).inserted
             else { continue }
 
@@ -178,6 +178,13 @@ enum BrowserCatalog {
         }
 
         return browsers.sorted { a, b in a.name.localizedStandardCompare(b.name) == .orderedAscending }
+    }
+
+    /// Some apps write these Info.plist switches as the text "1" or "YES" rather than as a boolean.
+    private static func isOn(_ key: String, in bundle: Bundle) -> Bool {
+        let value = bundle.object(forInfoDictionaryKey: key)
+
+        return value as? Bool ?? (value as? NSString)?.boolValue ?? false
     }
 
     /// Profiles worth offering. A browser with a single profile gets none, so it shows as one plain row.
@@ -194,7 +201,11 @@ enum BrowserCatalog {
             }
         }
 
-        return profiles.count > 1 ? profiles : []
+        // Two profiles can share a name, and rows are told apart by ID, so only the first of each is kept.
+        var seenIDs = Set<String>()
+        let distinctProfiles = profiles.filter { profile in seenIDs.insert(profile.id).inserted }
+
+        return distinctProfiles.count > 1 ? distinctProfiles : []
     }
 
     /// Profiles from Chromium's `Local State`, in the browser's own order.
