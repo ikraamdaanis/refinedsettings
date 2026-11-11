@@ -1,3 +1,4 @@
+import AppKit
 import ApplicationServices
 import CoreGraphics
 import Foundation
@@ -39,6 +40,31 @@ enum WindowFocus {
 
             return
         }
+    }
+
+    /// Brings an app's main window to the front, and with it the desktop that window is on, unless the app is already
+    /// in front with that window on the desktop you're on. Returns whether it had to.
+    @MainActor
+    @discardableResult
+    static func bringMainWindowForward(of processID: pid_t) -> Bool {
+        let application = AXUIElementCreateApplication(processID)
+        AXUIElementSetMessagingTimeout(application, accessibilityTimeout)
+        var windowValue: CFTypeRef?
+
+        guard AXUIElementCopyAttributeValue(application, kAXMainWindowAttribute as CFString, &windowValue) == .success,
+              let windowValue,
+              CFGetTypeID(windowValue) == AXUIElementGetTypeID()
+        else { return false }
+
+        let window = unsafeDowncast(windowValue, to: AXUIElement.self)
+        var windowID: CGWindowID = 0
+        let isOnActiveDesktop = getWindowID(window, &windowID) == .success && DesktopSpaces.window(windowID, isOn: DesktopSpaces.activeID)
+
+        if isOnActiveDesktop && NSWorkspace.shared.frontmostApplication?.processIdentifier == processID { return false }
+
+        focus(window, of: processID)
+
+        return true
     }
 
     private static func standardWindows(of processID: pid_t) -> [CGWindowID: AXUIElement] {
