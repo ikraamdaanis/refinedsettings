@@ -21,7 +21,7 @@ struct DesktopShortcut: Equatable {
 
     let desktopNumber: Int
     let character: Int
-    let keyCode: Int64
+    let keyCode: CGKeyCode
     let modifiers: CGEventFlags
 
     /// Written like a menu shortcut, for example ⇧⌘1.
@@ -64,7 +64,7 @@ struct DesktopShortcut: Equatable {
         let source = CGEventSource(stateID: .hidSystemState)
 
         for isKeyDown in [true, false] {
-            let event = CGEvent(keyboardEventSource: source, virtualKey: CGKeyCode(keyCode), keyDown: isKeyDown)
+            let event = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: isKeyDown)
             event?.flags = modifiers
             event?.post(tap: .cghidEventTap)
         }
@@ -84,14 +84,19 @@ struct DesktopShortcut: Equatable {
                   hotKey["enabled"] as? Bool == true,
                   let value = hotKey["value"] as? [String: Any],
                   let parameters = value["parameters"] as? [Int],
-                  parameters.count == 3
+                  parameters.count == 3,
+                  // A shortcut with no key stores 65535 here. Anything else out of range is a damaged file, and
+                  // converting it unchecked would crash.
+                  let keyCode = CGKeyCode(exactly: parameters[1]),
+                  keyCode != CGKeyCode.max,
+                  let modifierBits = UInt64(exactly: parameters[2])
             else { return nil }
 
             return DesktopShortcut(
                 desktopNumber: desktopNumber,
                 character: parameters[0],
-                keyCode: Int64(parameters[1]),
-                modifiers: CGEventFlags(rawValue: UInt64(parameters[2])).intersection(modifierMask)
+                keyCode: keyCode,
+                modifiers: CGEventFlags(rawValue: modifierBits).intersection(modifierMask)
             )
         }
     }
