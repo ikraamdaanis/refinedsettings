@@ -6,6 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var isMenuBarIconShown = MenuBarIconSetting.isShown
     private var hasFinishedLaunching = false
     private var urlsReceivedDuringLaunch: [URL] = []
+    private var settingsObserver: NSObjectProtocol?
     private let settingsWindow = SettingsWindowController()
     private let mouseScrollReversal = EventTapSupervisor(isWanted: { MouseScrollSetting.reversesAnyAxis }, makeTap: ScrollReverser.makeTap)
     private let desktopCycling = DesktopCycler()
@@ -16,7 +17,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         installMainMenu()
         installStatusItem()
-        NotificationCenter.default.addObserver(self, selector: #selector(syncWithSettings), name: UserDefaults.didChangeNotification, object: nil)
+        // On the main queue, because this notification arrives on whichever thread changed a setting.
+        settingsObserver = NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.syncWithSettings() }
+        }
         mouseScrollReversal.sync()
         desktopCycling.sync()
         hasFinishedLaunching = true
@@ -37,7 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             && launchEvent.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue == keyAELaunchedAsLogInItem
     }
 
-    @objc private func syncWithSettings() {
+    private func syncWithSettings() {
         mouseScrollReversal.sync()
         desktopCycling.sync()
         syncMenuBarIcon()
