@@ -6,11 +6,11 @@ import Foundation
 @MainActor
 final class EventTapSupervisor {
     private let isWanted: () -> Bool
-    private let makeTap: () -> EventTap
+    private let makeTap: @MainActor () -> EventTap
     private var tap: EventTap?
     private var watchdog: Task<Void, Never>?
 
-    init(isWanted: @escaping () -> Bool, makeTap: @escaping () -> EventTap) {
+    init(isWanted: @escaping () -> Bool, makeTap: @escaping @MainActor () -> EventTap) {
         self.isWanted = isWanted
         self.makeTap = makeTap
     }

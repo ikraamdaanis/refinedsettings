@@ -2,7 +2,7 @@
 
 Refined Settings for Mac: small system tweaks in one menu bar app, for macOS 13+.
 
-Today it handles links, your mouse's scrolling direction, cycling through a desktop's windows and options macOS has but doesn't show, placed where System Settings would put them. Set it as the default browser and every link opens an "Open Link" window in the centre of the screen, listing each installed browser, and each profile for Chrome-family browsers, Firefox (only Firefox profiles that have been used) and Safari (once there's more than one). More of these options and more mouse settings are planned; the research behind them is in [docs](docs/README.md).
+Today it handles links, your mouse's scrolling direction and buttons, cycling through a desktop's windows and options macOS has but doesn't show, placed where System Settings would put them. Set it as the default browser and every link opens an "Open Link" window in the centre of the screen, listing each installed browser, and each profile for Chrome-family browsers, Firefox (only Firefox profiles that have been used) and Safari (once there's more than one). More of these options and more mouse settings are planned; the research behind them is in [docs](docs/README.md).
 
 Press `1` to `9` to open straight away, or pick with the arrow keys and press Return, double-click a row, or click Open. Press `Esc`, click Cancel or the close button, or click outside the window to cancel.
 
@@ -41,9 +41,11 @@ Safari has no way for another app to open a link in a given profile, so Refined 
 
 This needs Accessibility access: click **Allow Access…** in Refined Settings' Settings, then switch Refined Settings on in **System Settings > Privacy & Security > Accessibility**. Without it, Safari shows as a single row and opens links in whichever profile it picks. Refined Settings remembers the profiles for when Safari isn't running, and updates the list each time it can read Safari's menu.
 
-## Mouse scrolling
+## Mouse
 
 **Mouse** in Settings shows your connected mouse and can reverse its vertical and horizontal scrolling separately, without changing your trackpad. It needs Accessibility access, and the event tap only runs while a switch is on. Don't reverse the same mouse in another app as well, or the two cancel out. The approach comes from [LinearMouse](https://github.com/linearmouse/linearmouse).
+
+Under **Buttons**, a tester lights up each button and wheel as macOS receives it while the pointer is over the Settings window, so you can see which buttons reach your Mac at all. Buttons past the usual five show up there once pressed. The middle, back and forward buttons, and any extra ones, can each be set to Nothing, Back, Forward, Mission Control, App Windows, Show Desktop or a recorded keyboard shortcut. Back and forward press ⌘[ and ⌘], except in Chromium browsers, Firefox, VS Code and Cursor, which already handle the side buttons, so there they pass straight through. Remapping needs Accessibility access, and its event tap only runs while a button has an action. Some buttons, such as a Logitech mouse's gesture button, only talk to the maker's own software and never reach macOS.
 
 ## Desktops
 

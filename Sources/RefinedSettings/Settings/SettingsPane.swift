@@ -34,7 +34,7 @@ enum SettingsPane: Hashable, CaseIterable {
         case .links: "Choose which browser each link opens in. Click a link in any app and a small window asks where to open it."
         case .screenshots: "Choose the file format and name for your screenshots, and whether captured windows keep their shadow."
         case .keyboard: "Choose what happens when you hold down a key, how fast it repeats, and whether quotes and dashes change as you type."
-        case .mouse: "Set your mouse's scroll direction without changing your trackpad. macOS has one setting for both."
+        case .mouse: "Set your mouse's scroll direction without changing your trackpad, check that each button reaches your Mac, and choose what the buttons do."
         }
     }
 
@@ -48,7 +48,7 @@ enum SettingsPane: Hashable, CaseIterable {
         case .links: "Choose which browser each link opens in."
         case .screenshots: "Choose the format, file name and window shadow."
         case .keyboard: "Set key repeat, smart quotes and smart dashes."
-        case .mouse: "Set mouse scrolling apart from your trackpad."
+        case .mouse: "Set mouse scrolling and what its buttons do."
         }
     }
 
@@ -99,7 +99,7 @@ enum SettingsPane: Hashable, CaseIterable {
         case .links: ["browser", "default", "picker", "profile", "safari", "chrome", "firefox", "url"]
         case .screenshots: ["capture", "format", "png", "jpg", "heic", "shadow", "file name"]
         case .keyboard: ["accent", "repeat", "hold", "press and hold", "typing", "smart quotes", "dashes", "text input", "delay", "rate", "speed"]
-        case .mouse: ["scroll", "wheel", "pointer", "acceleration", "reverse", "smooth", "vertical", "horizontal"]
+        case .mouse: ["scroll", "wheel", "pointer", "acceleration", "reverse", "smooth", "vertical", "horizontal", "buttons", "back", "forward", "middle", "remap", "test"]
         }
     }
 

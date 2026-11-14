@@ -4,8 +4,18 @@ import SwiftUI
 struct MousePane: View {
     @AppStorage(MouseScrollSetting.verticalKey) private var reversesVertically = false
     @AppStorage(MouseScrollSetting.horizontalKey) private var reversesHorizontally = false
+    @AppStorage(MouseButtonSetting.mappingsKey) private var buttonMappingsData = Data()
     @State private var mouseNames = MouseDevices.connectedNames()
     @State private var hasAccessibilityAccess = AXIsProcessTrusted()
+    @State private var extraButtons = MouseButtonSetting.extraButtons
+
+    private var remapsAnyButton: Bool {
+        MouseButtonSetting.decode(buttonMappingsData).values.contains { mapping in mapping.takesOverButton }
+    }
+
+    private var mappableButtons: [Int] {
+        [MouseButtonSetting.middleButton, MouseButtonSetting.backButton, MouseButtonSetting.forwardButton] + extraButtons
+    }
 
     private var mouseName: String {
         mouseNames.isEmpty ? "None connected" : mouseNames.joined(separator: ", ")
@@ -41,6 +51,23 @@ struct MousePane: View {
                     AccessibilityAccessRow(reason: "Refined Settings can't change your mouse's scrolling without it.")
                 }
             }
+            Section {
+                LabeledContent {
+                    EmptyView()
+                } label: {
+                    Text("Test your buttons")
+                    Text("With the pointer over this window, press each button and turn each wheel. One that never lights up isn't reaching your Mac. Buttons keep their usual job while this window is in front.")
+                }
+                MouseButtonTester(extraButtons: $extraButtons)
+                ForEach(mappableButtons, id: \.self) { button in
+                    MouseButtonRow(button: button, mapping: mapping(for: button))
+                }
+                if remapsAnyButton && !hasAccessibilityAccess {
+                    AccessibilityAccessRow(reason: "Refined Settings can't change what your buttons do without it.")
+                }
+            } header: {
+                PaneSectionHeader(title: "Buttons", help: "Choose what each button does. Left and right clicks always stay as they are.")
+            }
         }
         .paneFormStyle()
         .task {
@@ -51,6 +78,21 @@ struct MousePane: View {
                 try? await Task.sleep(for: .seconds(2))
             }
         }
+    }
+
+    private func mapping(for button: Int) -> Binding<MouseButtonMapping?> {
+        Binding(
+            get: { MouseButtonSetting.decode(buttonMappingsData)[button] },
+            set: { newMapping in
+                var mappings = MouseButtonSetting.decode(buttonMappingsData)
+                mappings[button] = newMapping
+                buttonMappingsData = MouseButtonSetting.encode(mappings)
+
+                if newMapping != nil && !AXIsProcessTrusted() {
+                    SafariProfiles.requestAccess()
+                }
+            }
+        )
     }
 
     private func requestingAccess(_ setting: Binding<Bool>) -> Binding<Bool> {

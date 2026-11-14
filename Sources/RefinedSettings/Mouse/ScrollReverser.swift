@@ -26,7 +26,7 @@ final class ScrollReverser: @unchecked Sendable {
     static func makeTap() -> EventTap {
         let reverser = ScrollReverser()
 
-        return EventTap(location: .cghidEventTap, eventType: .scrollWheel, threadName: "com.ikraam.refinedsettings.scroll-tap") { event in
+        return EventTap(location: .cghidEventTap, eventTypes: [.scrollWheel], threadName: "com.ikraam.refinedsettings.scroll-tap") { _, event in
             reverser.reverseIfFromMouse(event)
 
             return true

@@ -9,6 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var settingsObserver: NSObjectProtocol?
     private let settingsWindow = SettingsWindowController()
     private let mouseScrollReversal = EventTapSupervisor(isWanted: { MouseScrollSetting.reversesAnyAxis }, makeTap: ScrollReverser.makeTap)
+    private let mouseButtonRemapping = EventTapSupervisor(isWanted: { MouseButtonSetting.remapsAnyButton }, makeTap: ButtonRemapper.makeTap)
     private let desktopCycling = DesktopCycler()
     private lazy var picker = PickerController(isSettingsVisible: { [weak self] in
         self?.settingsWindow.isVisible ?? false
@@ -22,6 +23,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             MainActor.assumeIsolated { self?.syncWithSettings() }
         }
         mouseScrollReversal.sync()
+        mouseButtonRemapping.sync()
         desktopCycling.sync()
         hasFinishedLaunching = true
 
@@ -43,6 +45,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func syncWithSettings() {
         mouseScrollReversal.sync()
+        mouseButtonRemapping.sync()
         desktopCycling.sync()
         syncMenuBarIcon()
     }
