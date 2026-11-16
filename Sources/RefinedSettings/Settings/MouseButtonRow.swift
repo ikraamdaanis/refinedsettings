@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Picks what one mouse button does, with a shortcut recorder under it when the button presses a shortcut.
+/// Picks what one mouse button does, with a shortcut recorder or a key picker under it when the action needs one.
 struct MouseButtonRow: View {
     let button: Int
     @Binding var mapping: MouseButtonMapping?
@@ -24,7 +24,13 @@ struct MouseButtonRow: View {
         Binding(
             get: { mapping?.action },
             set: { newAction in
-                mapping = newAction.map { action in MouseButtonMapping(action: action, shortcut: mapping?.shortcut) }
+                mapping = newAction.map { action in
+                    MouseButtonMapping(
+                        action: action,
+                        shortcut: mapping?.shortcut,
+                        modifierKey: action == .modifierKey ? mapping?.modifierKey ?? .rightCommand : mapping?.modifierKey
+                    )
+                }
             }
         )
     }
@@ -33,7 +39,16 @@ struct MouseButtonRow: View {
         Binding(
             get: { mapping?.shortcut },
             set: { newShortcut in
-                mapping = MouseButtonMapping(action: .keyboardShortcut, shortcut: newShortcut)
+                mapping = MouseButtonMapping(action: .keyboardShortcut, shortcut: newShortcut, modifierKey: mapping?.modifierKey)
+            }
+        )
+    }
+
+    private var modifierKey: Binding<ModifierKey> {
+        Binding(
+            get: { mapping?.modifierKey ?? .rightCommand },
+            set: { newKey in
+                mapping = MouseButtonMapping(action: .modifierKey, shortcut: mapping?.shortcut, modifierKey: newKey)
             }
         )
     }
@@ -59,6 +74,20 @@ struct MouseButtonRow: View {
             } label: {
                 Text("Shortcut")
                 Text("Click, then type the shortcut this button should press.")
+            }
+        }
+        if mapping?.action == .modifierKey {
+            LabeledContent {
+                Picker("Key", selection: modifierKey) {
+                    ForEach(ModifierKey.allCases, id: \.self) { key in
+                        Text(key.title).tag(key)
+                    }
+                }
+                .labelsHidden()
+                .fixedSize()
+            } label: {
+                Text("Key")
+                Text("Held down for as long as you hold the button, so a quick press taps it.")
             }
         }
     }

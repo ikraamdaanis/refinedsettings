@@ -24,7 +24,8 @@ final class ButtonRemapper: @unchecked Sendable {
         "com.todesktop.230313mzl4w4u92",
     ]
 
-    private var swallowedButtons = Set<Int64>()
+    /// Each button that's down and taken over, with the mapping it was pressed under, so its release undoes that.
+    private var swallowedButtons = [Int64: MouseButtonMapping]()
     private let frontmostBundleID = OSAllocatedUnfairLock<String?>(initialState: nil)
     private let workspaceCenter = NSWorkspace.shared.notificationCenter
     private var activationObserver: NSObjectProtocol?
@@ -64,9 +65,13 @@ final class ButtonRemapper: @unchecked Sendable {
         case .otherMouseDown:
             return !takeOver(button)
         case .otherMouseUp:
-            return swallowedButtons.remove(button) == nil
+            guard let mapping = swallowedButtons.removeValue(forKey: button) else { return true }
+
+            release(mapping)
+
+            return false
         default:
-            return !swallowedButtons.contains(button)
+            return swallowedButtons[button] == nil
         }
     }
 
@@ -77,7 +82,7 @@ final class ButtonRemapper: @unchecked Sendable {
         guard !alreadyDoes(mapping.action, button: button) else { return false }
 
         // Recorded before acting, so the release is swallowed even if the setting changes while the button is down.
-        swallowedButtons.insert(button)
+        swallowedButtons[button] = mapping
         perform(mapping)
 
         return true
@@ -110,6 +115,15 @@ final class ButtonRemapper: @unchecked Sendable {
             sendDockNotification("com.apple.showdesktop.awake" as CFString, 0)
         case .keyboardShortcut:
             mapping.shortcut?.post()
+        case .modifierKey:
+            mapping.modifierKey?.post(isDown: true)
         }
+    }
+
+    /// A held modifier lets go with the button. Every other action happens in full on the press.
+    private func release(_ mapping: MouseButtonMapping) {
+        guard mapping.action == .modifierKey else { return }
+
+        mapping.modifierKey?.post(isDown: false)
     }
 }

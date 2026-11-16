@@ -25,6 +25,17 @@ enum KeyPress {
         }
     }
 
+    /// Presses or lets go of a modifier key alone, which reaches apps as a change of flags rather than a key press.
+    /// Modifiers already down stay down around it.
+    static func postModifier(keyCode: CGKeyCode, flags: CGEventFlags, isDown: Bool) {
+        let source = CGEventSource(stateID: .hidSystemState)
+        let heldFlags = CGEventSource.flagsState(.combinedSessionState).subtracting(.maskNonCoalesced)
+        let event = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: isDown)
+        event?.type = .flagsChanged
+        event?.flags = (isDown ? heldFlags.union(flags) : heldFlags.subtracting(flags)).union(.maskNonCoalesced)
+        event?.post(tap: .cghidEventTap)
+    }
+
     /// For example ⇧⌘T. `character` is what the key types with no modifiers, if anything.
     static func displayName(keyCode: CGKeyCode, character: String?, modifiers: CGEventFlags) -> String {
         let namedKey = namedKeys[Int(keyCode)]
