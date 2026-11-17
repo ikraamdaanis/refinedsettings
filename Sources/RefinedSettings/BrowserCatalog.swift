@@ -7,6 +7,7 @@ enum LaunchMethod {
     case chromiumProfile(directory: String)
     case firefoxProfile(name: String)
     case safariProfile(name: String)
+    case ardiaProfile(id: String)
 }
 
 struct BrowserProfile: Identifiable {
@@ -41,6 +42,24 @@ enum BrowserCatalog {
     private static let hiddenIDsKey = "hiddenEntryIDs"
     private static let entryOrderKey = "entryOrder"
     private static let firefoxBundleID = "org.mozilla.firefox"
+    static let ardiaBundleID = "com.ardia.browser"
+    /// The colours Ardia gives profiles, by the name it stores.
+    private static let ardiaColors: [String: NSColor] = [
+        "red": .systemRed,
+        "orange": .systemOrange,
+        "yellow": .systemYellow,
+        "green": .systemGreen,
+        "mint": .systemMint,
+        "teal": .systemTeal,
+        "cyan": .systemCyan,
+        "blue": .systemBlue,
+        "indigo": .systemIndigo,
+        "purple": .systemPurple,
+        "pink": .systemPink,
+        "brown": .systemBrown,
+        "gray": .systemGray,
+        "grey": .systemGray,
+    ]
 
     /// Chromium browsers whose profiles can be targeted with --profile-directory, keyed by bundle ID.
     private static let chromiumDataDirectories = [
@@ -195,6 +214,8 @@ enum BrowserCatalog {
             profiles = chromiumProfiles(bundleID: bundleID, dataDirectory: applicationSupport.appendingPathComponent(dataPath))
         } else if bundleID == firefoxBundleID {
             profiles = firefoxProfiles(bundleID: bundleID)
+        } else if bundleID == ardiaBundleID {
+            profiles = ardiaProfiles(bundleID: bundleID)
         } else if bundleID == SafariProfiles.bundleID {
             profiles = SafariProfiles.profileNames().map { name in
                 BrowserProfile(id: "\(bundleID)|\(name)", name: name, picture: nil, launchMethod: .safariProfile(name: name))
@@ -286,6 +307,37 @@ enum BrowserCatalog {
             }
 
             return true
+        }
+    }
+
+    /// Profiles from Ardia's `session.json`, in its own order. Ardia runs on Chromium but keeps its own list of
+    /// profiles on top, which `--profile-directory` doesn't reach, so links go in through AppleScript instead.
+    private static func ardiaProfiles(bundleID: String) -> [BrowserProfile] {
+        let sessionURL = applicationSupport.appendingPathComponent("\(ardiaBundleID)/session.json")
+
+        guard
+            let data = try? Data(contentsOf: sessionURL),
+            let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+            let profilesByID = root["profiles"] as? [String: [String: Any]]
+        else { return [] }
+
+        let order = root["profileOrder"] as? [String] ?? []
+        let ids = order.filter { id in profilesByID[id] != nil }
+            + profilesByID.keys.filter { id in !order.contains(id) }.sorted()
+
+        return ids.map { id in
+            let info = profilesByID[id] ?? [:]
+            let storedName = info["name"] as? String ?? ""
+            let picture = (info["color"] as? String).flatMap { colorName in ardiaColors[colorName] }.map { color in
+                defaultAvatar(fill: color, glyph: .white)
+            }
+
+            return BrowserProfile(
+                id: "\(bundleID)|\(id)",
+                name: storedName.isEmpty ? id : storedName,
+                picture: picture,
+                launchMethod: .ardiaProfile(id: id)
+            )
         }
     }
 

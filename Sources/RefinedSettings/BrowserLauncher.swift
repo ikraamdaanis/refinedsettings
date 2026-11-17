@@ -6,6 +6,24 @@ import AppKit
 enum BrowserLauncher {
     /// How long a running browser gets, once it has the link, to come to the front by itself.
     private static let settleDelay: Duration = .milliseconds(150)
+    /// Shows the profile in Ardia's front window, then opens the link as a new tab there. Its arguments are the profile
+    /// ID, the link, and whether Ardia is being launched, in which case it gets a moment to restore its windows.
+    private static let ardiaScript = """
+        on run {profileID, linkURL, launchState}
+            tell application id "\(BrowserCatalog.ardiaBundleID)"
+                activate
+                if launchState is "launching" then
+                    repeat 50 times
+                        if (count of windows) > 0 then exit repeat
+                        delay 0.1
+                    end repeat
+                end if
+                if (count of windows) is 0 then make new window
+                focus (first profile whose id is profileID)
+                make new tab with properties {URL:linkURL}
+            end tell
+        end run
+        """
 
     static func open(_ url: URL, with entry: BrowserEntry) {
         guard !AppInfo.isRefinedSettings(entry.appURL) else { return }
@@ -30,6 +48,9 @@ enum BrowserLauncher {
                 _ = await SafariProfiles.bringToFront(profileNamed: name, safariURL: entry.appURL)
                 openWithWorkspace(url, entry: entry, then: handedOver)
             }
+        case .ardiaProfile(let id):
+            let launchState = runningProcessIDs.isEmpty ? "launching" : "running"
+            run("/usr/bin/osascript", ["-e", ardiaScript, id, url.absoluteString, launchState], browserName: entry.browserName, then: handedOver)
         }
     }
 
@@ -84,19 +105,31 @@ enum BrowserLauncher {
         }
     }
 
-    /// Runs /usr/bin/open with an argument array; nothing in the URL is ever parsed by a shell.
     private static func runOpen(_ arguments: [String], browserName: String, then handedOver: @escaping @MainActor @Sendable () -> Void) {
+        run("/usr/bin/open", arguments, browserName: browserName, then: handedOver)
+    }
+
+    /// Runs a tool with an argument array; nothing in the URL is ever parsed by a shell. What it printed as an error,
+    /// such as macOS refusing it control of the browser, goes in the alert when it fails.
+    private static func run(_ executablePath: String, _ arguments: [String], browserName: String, then handedOver: @escaping @MainActor @Sendable () -> Void) {
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        let errorOutput = Pipe()
+        let toolName = URL(fileURLWithPath: executablePath).lastPathComponent
+        process.executableURL = URL(fileURLWithPath: executablePath)
         process.arguments = arguments
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = errorOutput
         process.terminationHandler = { finishedProcess in
             let status = finishedProcess.terminationStatus
+            let errorData = errorOutput.fileHandleForReading.readDataToEndOfFile()
+            let errorText = String(decoding: errorData, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
 
             Task { @MainActor in
                 if status == 0 {
                     handedOver()
                 } else {
-                    showFailure("Couldn't open \(browserName) (open exited with status \(status)).")
+                    let detail = errorText.isEmpty ? "" : "\n\n\(errorText)"
+                    showFailure("Couldn't open \(browserName) (\(toolName) exited with status \(status)).\(detail)")
                 }
             }
         }
