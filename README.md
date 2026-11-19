@@ -2,7 +2,7 @@
 
 Refined Settings for Mac: small system tweaks in one menu bar app, for macOS 13+.
 
-Today it handles links, your mouse's scrolling direction and buttons, cycling through a desktop's windows and options macOS has but doesn't show, placed where System Settings would put them. Set it as the default browser and every link opens an "Open Link" window in the centre of the screen, listing each installed browser, and each profile for Chrome-family browsers, Ardia, Firefox (only Firefox profiles that have been used) and Safari (once there's more than one). More of these options and more mouse settings are planned; the research behind them is in [docs](docs/README.md).
+Today it handles links, your mouse's scrolling direction and buttons, cycling through a desktop's windows, a super key, app shortcuts and options macOS has but doesn't show, placed where System Settings would put them. Set it as the default browser and every link opens an "Open Link" window in the centre of the screen, listing each installed browser, and each profile for Chrome-family browsers, Ardia, Firefox (only Firefox profiles that have been used) and Safari (once there's more than one). More of these options and more mouse settings are planned; the research behind them is in [docs](docs/README.md).
 
 Press `1` to `9` to open straight away, or pick with the arrow keys and press Return, double-click a row, or click Open. Press `Esc`, click Cancel or the close button, or click outside the window to cancel.
 
@@ -54,6 +54,14 @@ Under **Buttons**, a tester lights up each button and wheel as macOS receives it
 ## Desktops
 
 If you use the **Switch to Desktop N** shortcuts (**System Settings > Keyboard > Keyboard Shortcuts > Mission Control**), **Cycle through windows** under **Desktop & Dock** in Settings makes the shortcut for the desktop you're already on rotate through that desktop's windows, starting from the one at the back. Shortcuts for other desktops still switch desktops. It needs Accessibility access to bring windows forward. While the switch is on, the app registers only the current desktop's shortcut as a hot key and moves it when you change desktops, so it doesn't read your typing, and it keeps working when an app turns on Secure Input for a password field.
+
+## Super key and app shortcuts
+
+Under **Keyboard**, **Super key** turns Caps Lock or a right-hand modifier into a key that holds ⌃⌥⌘ for as long as it's down (⌃⌥⇧⌘ with **Include Shift** on, which is off by default because macOS keeps a few ⌃⌥⇧⌘ shortcuts for itself). Apps leave those combinations free, so shortcuts made with it don't clash. Tapped on its own it can do nothing, press Escape or switch Caps Lock on and off. Clicks while it's held stay plain clicks, since ⌃-click is a right-click.
+
+For Caps Lock, Refined Settings maps the key to F18 the way `hidutil` does, since an event tap can't stop Caps Lock switching on. It sets aside any other Caps Lock mapping while it does, and puts everything back when the super key is turned off or the app quits. If Caps Lock is changed under **System Settings > Keyboard > Keyboard Shortcuts > Modifier Keys**, macOS applies that first and the super key never sees it, so Settings asks you to set it back. The super key needs Accessibility access, and like any event tap it can't see keys typed into a password field.
+
+**App Shortcuts** gives apps a shortcut that opens them or brings them to the front if they're running. Pressed again, it brings the app's other windows forward one at a time, such as each Chrome profile's window, switching desktops when a window is on another one and skipping minimized windows, and goes round them again once each has had a turn. It never hides the app or sends you back to the one you were in. Give several apps the same shortcut and each press moves on to the next one, in the list's order, after the app in front has shown its windows; drag the rows to change the order. These are hot keys, so they need no permission and work anywhere, though going through an app's windows needs Accessibility access; without it each press goes straight to the next app. A shortcut needs ⌃ or ⌘ (or a function key), so it can't get in the way of typing.
 
 ## Options macOS doesn't show
 

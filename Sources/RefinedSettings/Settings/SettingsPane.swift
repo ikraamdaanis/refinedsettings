@@ -33,7 +33,7 @@ enum SettingsPane: Hashable, CaseIterable {
         case .finder: "Show more in Finder windows and choose how folders and search results are laid out."
         case .links: "Choose which browser each link opens in. Click a link in any app and a small window asks where to open it."
         case .screenshots: "Choose the file format and name for your screenshots, and whether captured windows keep their shadow."
-        case .keyboard: "Choose what happens when you hold down a key, how fast it repeats, and whether quotes and dashes change as you type."
+        case .keyboard: "Turn a spare key into a super key, open apps with shortcuts, and choose how held keys repeat and whether quotes and dashes change as you type."
         case .mouse: "Set your mouse's scroll direction without changing your trackpad, check that each button reaches your Mac, and choose what the buttons do."
         }
     }
@@ -47,7 +47,7 @@ enum SettingsPane: Hashable, CaseIterable {
         case .finder: "Show more in Finder and choose default views."
         case .links: "Choose which browser each link opens in."
         case .screenshots: "Choose the format, file name and window shadow."
-        case .keyboard: "Set key repeat, smart quotes and smart dashes."
+        case .keyboard: "Set a super key, app shortcuts and key repeat."
         case .mouse: "Set mouse scrolling and what its buttons do."
         }
     }
@@ -98,7 +98,7 @@ enum SettingsPane: Hashable, CaseIterable {
         case .finder: ["hidden files", "path", "title bar", "view", "search", "ds_store", "network"]
         case .links: ["browser", "default", "picker", "profile", "safari", "chrome", "firefox", "url"]
         case .screenshots: ["capture", "format", "png", "jpg", "heic", "shadow", "file name"]
-        case .keyboard: ["accent", "repeat", "hold", "press and hold", "typing", "smart quotes", "dashes", "text input", "delay", "rate", "speed"]
+        case .keyboard: ["super", "hyper", "caps lock", "modifier", "app shortcuts", "hotkey", "hot key", "launch", "open app", "accent", "repeat", "hold", "press and hold", "typing", "smart quotes", "dashes", "text input", "delay", "rate", "speed"]
         case .mouse: ["scroll", "wheel", "pointer", "acceleration", "reverse", "smooth", "vertical", "horizontal", "buttons", "back", "forward", "middle", "remap", "test"]
         }
     }

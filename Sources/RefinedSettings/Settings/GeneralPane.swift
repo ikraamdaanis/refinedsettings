@@ -32,7 +32,7 @@ struct GeneralPane: View {
                 FeatureRow(pane: .finder, status: changeSummary(of: SystemPreference.finderPreferences))
                 FeatureRow(pane: .links, status: AppInfo.isDefaultBrowser(defaultBrowserURL) ? "On" : "Needs Setup")
                 FeatureRow(pane: .screenshots, status: changeSummary(of: SystemPreference.screenshotPreferences))
-                FeatureRow(pane: .keyboard, status: changeSummary(of: SystemPreference.keyboardPreferences))
+                FeatureRow(pane: .keyboard, status: keyboardSummary)
                 FeatureRow(pane: .mouse, status: MouseScrollSetting.reversesAnyAxis ? "On" : "Off")
             }
             Section("App") {
@@ -76,7 +76,7 @@ struct GeneralPane: View {
                     }
                 } label: {
                     Text("Accessibility")
-                    Text("Needed to change mouse scrolling, respond to desktop shortcuts and open Safari profiles. Only the features you turn on use it.")
+                    Text("Needed for the super key, mouse scrolling and buttons, desktop shortcuts and Safari profiles. Only the features you turn on use it.")
                 }
             }
         }
@@ -84,6 +84,14 @@ struct GeneralPane: View {
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refresh()
         }
+    }
+
+    /// The super key and app shortcuts count as one change each, alongside the macOS preferences.
+    private var keyboardSummary: String {
+        let shortcutChanges = [SuperKeySetting.isOn, AppShortcutSetting.load().contains { appShortcut in appShortcut.shortcut != nil }]
+        let changedCount = systemPreferences.changedCount(in: SystemPreference.keyboardPreferences) + shortcutChanges.filter { isChanged in isChanged }.count
+
+        return changedCount == 0 ? "Default" : "\(changedCount) Changed"
     }
 
     private func changeSummary(of preferences: [SystemPreference]) -> String {

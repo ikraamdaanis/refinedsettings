@@ -38,10 +38,13 @@ enum DesktopSpaces {
     }
 
     static func window(_ windowID: CGWindowID, isOn spaceID: UInt64) -> Bool {
+        spaceIDs(of: windowID).contains(spaceID)
+    }
+
+    /// The spaces a window shows on: none for a window that's offscreen for good, such as an app's helper windows.
+    static func spaceIDs(of windowID: CGWindowID) -> [UInt64] {
         let windowIDs = [NSNumber(value: windowID)] as CFArray
 
-        guard let spaceIDs = copySpaces(mainConnectionID(), allSpacesSelector, windowIDs)?.takeRetainedValue() as? [UInt64] else { return false }
-
-        return spaceIDs.contains(spaceID)
+        return copySpaces(mainConnectionID(), allSpacesSelector, windowIDs)?.takeRetainedValue() as? [UInt64] ?? []
     }
 }

@@ -7,10 +7,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var hasFinishedLaunching = false
     private var urlsReceivedDuringLaunch: [URL] = []
     private var settingsObserver: NSObjectProtocol?
+    private var shortcutRecordingObserver: NSObjectProtocol?
+    private var wakeObserver: NSObjectProtocol?
+    private var terminationSignal: DispatchSourceSignal?
+    private var isCapsLockRemapped: Bool?
     private let settingsWindow = SettingsWindowController()
     private let mouseScrollReversal = EventTapSupervisor(isWanted: { MouseScrollSetting.reversesAnyAxis }, makeTap: ScrollReverser.makeTap)
     private let mouseButtonRemapping = EventTapSupervisor(isWanted: { MouseButtonSetting.remapsAnyButton }, makeTap: ButtonRemapper.makeTap)
     private let desktopCycling = DesktopCycler()
+    private let appShortcuts = AppShortcutLauncher()
+    private lazy var superKey = EventTapSupervisor(isWanted: { SuperKeySetting.isOn }, makeTap: SuperKey.makeTap) { [weak self] _ in
+        self?.syncCapsLockRemap()
+    }
     private lazy var picker = PickerController(isSettingsVisible: { [weak self] in
         self?.settingsWindow.isVisible ?? false
     })
@@ -18,13 +26,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         installMainMenu()
         installStatusItem()
+        quitCleanlyOnTerminationSignal()
         // On the main queue, because this notification arrives on whichever thread changed a setting.
         settingsObserver = NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.syncWithSettings() }
         }
+        // The HID system can drop the Caps Lock mapping across sleep, so it goes back on afterwards.
+        wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.isCapsLockRemapped = nil
+                self?.syncCapsLockRemap()
+            }
+        }
+        shortcutRecordingObserver = NotificationCenter.default.addObserver(forName: ShortcutRecording.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.appShortcuts.sync() }
+        }
         mouseScrollReversal.sync()
         mouseButtonRemapping.sync()
         desktopCycling.sync()
+        superKey.sync()
+        syncCapsLockRemap()
+        appShortcuts.sync()
         hasFinishedLaunching = true
 
         // With no menu bar icon, opening the app is the only way to reach Settings.
@@ -43,10 +65,42 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             && launchEvent.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue == keyAELaunchedAsLogInItem
     }
 
+    /// Caps Lock is a dead key while it's remapped and nothing reads it, so the remap only stays while the super key's
+    /// tap is running.
+    private func syncCapsLockRemap() {
+        let isWanted = SuperKeySetting.key == .capsLock && superKey.isRunning
+
+        // Every settings change lands here, including window sizes being saved, and the remap is a round trip to the
+        // HID system. The first call always goes through, to clear a remap a crashed copy left behind.
+        guard isWanted != isCapsLockRemapped else { return }
+
+        isCapsLockRemapped = isWanted
+        CapsLockRemap.sync(isWanted: isWanted)
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        CapsLockRemap.sync(isWanted: false)
+    }
+
+    /// `kill` and `build.sh` stop the app with SIGTERM, which skips `applicationWillTerminate`. Quitting normally
+    /// instead puts Caps Lock back.
+    private func quitCleanlyOnTerminationSignal() {
+        signal(SIGTERM, SIG_IGN)
+        let source = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
+        source.setEventHandler {
+            NSApp.terminate(nil)
+        }
+        source.resume()
+        terminationSignal = source
+    }
+
     private func syncWithSettings() {
         mouseScrollReversal.sync()
         mouseButtonRemapping.sync()
         desktopCycling.sync()
+        superKey.sync()
+        syncCapsLockRemap()
+        appShortcuts.sync()
         syncMenuBarIcon()
     }
 

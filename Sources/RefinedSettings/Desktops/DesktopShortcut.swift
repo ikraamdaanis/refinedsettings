@@ -21,19 +21,8 @@ struct DesktopShortcut: Equatable {
         return KeyPress.displayName(keyCode: keyCode, character: typedKey, modifiers: modifiers)
     }
 
-    /// The modifiers in the form hot keys take. Hot keys can't include fn, which macOS adds by itself to the arrow and
-    /// function keys anyway.
     var carbonModifiers: UInt32 {
-        let carbonEquivalents: [(flag: CGEventFlags, modifier: Int)] = [
-            (.maskCommand, cmdKey),
-            (.maskShift, shiftKey),
-            (.maskAlternate, optionKey),
-            (.maskControl, controlKey),
-        ]
-
-        return carbonEquivalents
-            .filter { equivalent in modifiers.contains(equivalent.flag) }
-            .reduce(0) { combined, equivalent in combined | UInt32(equivalent.modifier) }
+        KeyPress.carbonModifiers(modifiers)
     }
 
     /// Presses the shortcut as if from the keyboard.

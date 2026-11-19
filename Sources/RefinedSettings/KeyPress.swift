@@ -15,6 +15,21 @@ enum KeyPress {
         kVK_F11: "F11", kVK_F12: "F12", kVK_F13: "F13", kVK_F14: "F14", kVK_F15: "F15", kVK_F16: "F16", kVK_F17: "F17", kVK_F18: "F18", kVK_F19: "F19", kVK_F20: "F20",
     ]
 
+    /// The modifiers in the form hot keys take. Hot keys can't include fn, which macOS adds by itself to the arrow and
+    /// function keys anyway.
+    static func carbonModifiers(_ modifiers: CGEventFlags) -> UInt32 {
+        let carbonEquivalents: [(flag: CGEventFlags, modifier: Int)] = [
+            (.maskCommand, cmdKey),
+            (.maskShift, shiftKey),
+            (.maskAlternate, optionKey),
+            (.maskControl, controlKey),
+        ]
+
+        return carbonEquivalents
+            .filter { equivalent in modifiers.contains(equivalent.flag) }
+            .reduce(0) { combined, equivalent in combined | UInt32(equivalent.modifier) }
+    }
+
     static func post(keyCode: CGKeyCode, modifiers: CGEventFlags) {
         let source = CGEventSource(stateID: .hidSystemState)
 

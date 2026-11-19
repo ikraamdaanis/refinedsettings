@@ -1,11 +1,16 @@
+import ApplicationServices
 import SwiftUI
 
 struct KeyboardPane: View {
+    @State private var hasAccessibilityAccess = AXIsProcessTrusted()
+
     var body: some View {
         Form {
             Section {
                 PaneSummary(pane: .keyboard)
             }
+            SuperKeySection(hasAccessibilityAccess: hasAccessibilityAccess)
+            AppShortcutsSection(hasAccessibilityAccess: hasAccessibilityAccess)
             Section {
                 SystemPreferenceToggleRow(
                     title: "Hold a key to repeat it",
@@ -54,5 +59,12 @@ struct KeyboardPane: View {
         }
         .paneFormStyle()
         .refreshesSystemPreferences()
+        .task {
+            // Only while this pane is showing, so a grant being made shows up here.
+            while !Task.isCancelled {
+                hasAccessibilityAccess = AXIsProcessTrusted()
+                try? await Task.sleep(for: .seconds(2))
+            }
+        }
     }
 }

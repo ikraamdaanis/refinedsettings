@@ -7,12 +7,23 @@ import Foundation
 final class EventTapSupervisor {
     private let isWanted: () -> Bool
     private let makeTap: @MainActor () -> EventTap
+    /// Told each time the tap starts or stops, for work that only makes sense while it runs.
+    private let didChangeRunning: @MainActor (Bool) -> Void
     private var tap: EventTap?
     private var watchdog: Task<Void, Never>?
 
-    init(isWanted: @escaping () -> Bool, makeTap: @escaping @MainActor () -> EventTap) {
+    var isRunning: Bool {
+        tap != nil
+    }
+
+    init(
+        isWanted: @escaping () -> Bool,
+        makeTap: @escaping @MainActor () -> EventTap,
+        didChangeRunning: @escaping @MainActor (Bool) -> Void = { _ in }
+    ) {
         self.isWanted = isWanted
         self.makeTap = makeTap
+        self.didChangeRunning = didChangeRunning
     }
 
     func sync() {
@@ -57,11 +68,15 @@ final class EventTapSupervisor {
 
         if newTap.start() {
             tap = newTap
+            didChangeRunning(true)
         }
     }
 
     private func removeTap() {
-        tap?.stop()
-        tap = nil
+        guard let tap else { return }
+
+        tap.stop()
+        self.tap = nil
+        didChangeRunning(false)
     }
 }
